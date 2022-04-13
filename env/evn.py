@@ -1,0 +1,134 @@
+from tarfile import XGLTYPE
+from .agent import Agent
+import numpy as np
+import time
+
+class Env():
+    def __init__(self, xWidth, yWidth, gridCellSize=0):
+        self.xWidth = xWidth
+        self.yWidth = yWidth
+        self.gridCellSize = gridCellSize
+        self.accelerationBoundry = [-0.4, 0.4]
+        self.angleBoundry = [np.deg2rad(-3) , np.deg2rad(3)]
+        self.actionSpace = {'changedAccel': self.accelerationBoundry, 'changedAngle': self.angleBoundry}
+
+    
+    def initAgent(self, agnetNum=2, random=True):
+        agentList = []
+        if random:
+            # print("init agent random")
+            for i in range(agnetNum):
+                print(agentList)
+                agn = Agent()
+                agn.initRandomPosition(xWidth=self.xWidth, yWidth=self.yWidth, agents=agentList, id=i)
+                agentList.append(agn)
+            return agentList
+        else:
+            # print("init agent predefine")
+            ag = Agent()
+            ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=0)
+            agentList.append(ag)
+            ag = Agent()
+            ag.initPredefinePosition(x=self.xWidth, y=self.yWidth, xD=0, yD=0, id=1)
+            agentList.append(ag)
+            return agentList
+
+    def step(self, action, agent, agentList, deltaT):
+        if action == None:
+            agent.directMove(deltaT)
+            return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList), None, None
+        else:
+            changedAccel = action['accel'].numpy()
+            changedAngle = action['angle'].numpy()
+            # print(f"\n@@@@@@@@\tInside step changedAccel {changedAccel}, changedAngle {changedAngle}")
+            agent.maneuverMove(agent.angle, agent.nonVectoralSpeed, changedAngle, changedAccel, deltaT)
+            return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList), None, None
+        
+    def reset(self, agents):
+        for ag in agents:
+            ag.resetAttr()
+        return [agents[0].xPos, agents[0].yPos, agents[0].speed['vx'], agents[0].speed['vy'], agents[0].accel['ax'], agents[0].accel['ay'], agents[1].xPos, agents[1].yPos, agents[1].speed['vx'], agents[1].speed['vy'], agents[1].accel['ax'], agents[1].accel['ay']]
+
+    # def initRender(self):
+    #     self.fig = plt.figure()
+    #     self.ax = self.fig.add_subplot(111)
+    #     self.fig.show()
+
+    # def render(self, agents):
+    #     for i, agent in enumerate(agents):
+    #         self.x[i].append(agent.xPos)
+    #         self.y[i].append(agent.yPos)
+            
+    #         self.ax.plot(self.x[0], self.y[0], color='b')
+    #         # self.ax.plot(self.x[1], self.y[1], color='r')
+            
+    #         self.fig.canvas.draw()
+    #         time.sleep(0.1)
+            
+    #         self.ax.set_xlim(left=max(0, i-50), right=i+50)
+    #         # self.ax.set_ylim(left=max(0, i-50), right=i+50)
+            
+
+    def selectStatus(self, agentObserver, agentTarget): # TODO: Are you sure the |v| sign in doc is not ||v|| and not mean length of vector? !!!!!!!! andaze speedd
+        SpeedMultiply = agentObserver.speed['vx'] * agentTarget.speed['vx'] + agentObserver.speed['vy'] * agentTarget.speed['vy']
+        absSpeedMultiply = np.sqrt(agentObserver.speed['vx'] ** 2 + agentObserver.speed['vy'] ** 2) * np.sqrt(agentTarget.speed['vx'] ** 2 + agentObserver.speed['vy'] ** 2)
+        cos70 = np.cos(np.deg2rad(70))
+        cos145 = np.cos(np.deg2rad(145))
+        if SpeedMultiply > cos70 * absSpeedMultiply:
+            status = "Overtaking"
+        if SpeedMultiply < cos145 * absSpeedMultiply:
+            status = "HeadOn"
+        if SpeedMultiply <= cos70 * absSpeedMultiply or SpeedMultiply >= cos145 * absSpeedMultiply:
+            status = "Crossing"
+
+        return status
+
+    def randomAction(w):
+        changedAccel = np.random.uniform(w.actionSpace['changedAccel'][0], w.actionSpace['changedAccel'][1])
+        changedAngle = np.random.uniform(w.actionSpace['changedAngle'][0], w.actionSpace['changedAngle'][1])
+        return changedAccel, changedAngle
+
+    def stepReward(self, agent, agentList):
+        if agent.id != agentList[0].id:
+            target = agentList[0]
+        else:
+            target = agentList[1]
+        rewardFinal = 1 # 1000
+        rewardTowardGoal = 1
+        rewardCollision = -1 # -1000
+        rewardLeft = -0.01 # -10
+        deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
+        deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
+        R_c = 1
+        k_r = 0.01
+        k_c = 0.01
+        k_v = 0.001
+        k_d = 0.001
+
+        # A) Path following Reward function:
+        # 1- Goal reward
+        if agent.checkArrival():
+            print("reward arrival")
+            agent.reward += rewardFinal
+            return agent.reward
+        
+        # 2- Heading error and Cross Error reward
+        # if not agent.checkArrival(): # what is kc? what is kv? what is delta u p?
+        #     print("reward Heading") 
+
+        #     rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine)) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine)) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+        #     rHeadingCross2 = np.exp(-k_c * np.abs(agent.distfromPathLine)) + np.exp(-k_c * np.abs(agent.distfromPathLine)) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+        #    # agent.reward += (rHeadingCross1 + rHeadingCross2)/2
+            # agent.reward += rHeadingCross2
+        
+        # B) Collision Avoidance Reward function
+        if agent.distfromAgent(target) < 5:
+            print("reward dist from agent is low", agent.distfromAgent(target))
+            agent.reward += rewardCollision
+            return agent.reward
+        if agent.checkLeftofLine() > 1e-06:
+            print("reward going left of line")
+            agent.reward += rewardLeft
+        return agent.reward
+        
+
