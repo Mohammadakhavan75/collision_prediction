@@ -15,6 +15,7 @@ if __name__ == '__main__':
     best_score = 0
     score_history = []
     totalScore = []
+    total_avg_score = []
     LoggerOn = True
 
     world = Env(x, y)
@@ -98,7 +99,7 @@ if __name__ == '__main__':
 
         score_history.append(score)
         avg_score = np.mean(score_history[-100:])
-        
+        total_avg_score.append(avg_score)
         if avg_score > best_score:
             best_score = avg_score
             agent.save_models()
@@ -109,8 +110,6 @@ if __name__ == '__main__':
                 os.mkdir(logPath)
 
             print("score is: ", score, "avg_score:", avg_score)
-            # print("score_history: ", score_history)
-            # print("totalScore: ", totalScore)
 
             plt.figure(figsize=(16, 10))
             plt.plot(score_history)
@@ -118,7 +117,7 @@ if __name__ == '__main__':
             plt.close()
 
             plt.figure(figsize=(16, 10))
-            plt.plot(avg_score)
+            plt.plot(total_avg_score)
             plt.savefig(logPath + "avg_score" + str(i) + "_" + str() + ".png")
             plt.close()
 
