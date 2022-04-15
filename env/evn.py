@@ -116,13 +116,14 @@ class Env():
         # if not agent.checkArrival(): # what is kc? what is kv? what is delta u p?
         #     print("reward Heading") 
 
-        #     rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine)) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine)) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
-        #     rHeadingCross2 = np.exp(-k_c * np.abs(agent.distfromPathLine)) + np.exp(-k_c * np.abs(agent.distfromPathLine)) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+        #     rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+        #     rHeadingCross2 = np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
         #    # agent.reward += (rHeadingCross1 + rHeadingCross2)/2
-            # agent.reward += rHeadingCross2
+        #     agent.reward += rHeadingCross1
+        #     print(f"rHeadingCross1: {rHeadingCross1}")
         
         # B) Collision Avoidance Reward function
-        if agent.distfromAgent(target) < 5:
+        if agent.distfromAgent(target) < 9260:
             print("reward dist from agent is low", agent.distfromAgent(target))
             agent.reward += rewardCollision
             return agent.reward
