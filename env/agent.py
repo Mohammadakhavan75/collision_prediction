@@ -38,12 +38,8 @@ class Agent():
         self.actor_critic.compile(optimizer=Adam(learning_rate=learning_rate))
 
     def choose_action(self, observation):
-        # print(f"######## inside choose_action observation {observation}")
         state = tf.convert_to_tensor([observation])
         _, probs = self.actor_critic(state)
-
-        # state = np.asarray(state)
-        # print(f"\n&&&&&&&&\tprobs.numpy()[0][0] {probs.numpy()[0][0]}, probs.numpy()[0][1] {probs.numpy()[0][1]}, probs.numpy()[0][2] {probs.numpy()[0][2]}, probs.numpy()[0][3] {probs.numpy()[0][3]}")
         action_probabilitiesSpeed = tfp.distributions.Normal(loc=probs.numpy()[0][0], scale=probs.numpy()[0][1])
         action_probabilitiesAngle = tfp.distributions.Normal(loc=probs.numpy()[0][2], scale=probs.numpy()[0][3])
         actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
@@ -68,10 +64,6 @@ class Agent():
             state_value_, _ = self.actor_critic(state_)
             state_value = tf.squeeze(state_value)
             state_value_ = tf.squeeze(state_value_)
-            # print(f"!*!*!*!*!* state_value {state_value}, state_value_ {state_value_}, probs {probs.numpy()}, probs.numpy()[0][0] {probs.numpy()[0][0]}, probs.numpy()[0][1] {probs.numpy()[0][1]}, {probs.numpy()[0][1] ** probs.numpy()[0][1]} , {np.power(aaa, 2)}, probs.numpy()[0][2] {probs.numpy()[0][2]}, probs.numpy()[0][3] {probs.numpy()[0][3]}, {probs.numpy()[0][3] ** probs.numpy()[0][3]}, {bbb}")
-
-            # state = np.asarray(state)
-            # state_ = np.asarray(state_)
 
             action_probabilitiesAccel = tfp.distributions.Normal(loc=probs.numpy()[0][0], scale=float(np.power(probs.numpy()[0][1], 2)))
             action_probabilitiesAngle = tfp.distributions.Normal(loc=probs.numpy()[0][2], scale=float(np.power(probs.numpy()[0][3], 2)))
@@ -84,9 +76,6 @@ class Agent():
             total_loss = actor_loss + critic_loss
 
         gradient = tape.gradient(total_loss, self.actor_critic.trainable_variables)
-        # print(f"#%#%#%#%#% gradient , delta {delta}, actor_loss {actor_loss}, critic_loss {critic_loss}, log_prob_accel {log_prob_accel}, log_prob_angle {log_prob_angle}, self.action {self.action}")
-        # self.actor_critic.optimizer.apply_gradients(zip(
-        #     gradient, self.actor_critic.trainable_variables))
         self.actor_critic.optimizer.apply_gradients([
             (grad, var) 
             for (grad, var) in zip(
@@ -122,7 +111,6 @@ class Agent():
             self.initLine()
             self.initModel()
             self.__firstSpeed = self.speed
-            # print("agent initiated with this attribute: ", self.getAttr())
         
         if all(loactionEmpty):
             self.xPos = x
@@ -136,7 +124,6 @@ class Agent():
             self.initLine()
             self.initModel()
             self.__firstSpeed = self.speed
-            # print("agent initiated with this attribute: ", self.getAttr())
         else:
             print(loactionEmpty)
             self.initRandomPosition(xWidth, yWidth, agents, id)
@@ -248,7 +235,6 @@ class Agent():
             else:
                 Dist = self.distfromAgent(target)
                 ttc = self.TTCD(target)
-                # print(f"######## Inside of sensors functionm. Dist {Dist} < self.acceptableDist {self.acceptableDist} and ttc[0] is {ttc[0]}")
                 if not bool(ttc):
                     sensorAlarm.append(False)
                     break
@@ -268,12 +254,8 @@ class Agent():
     def directMove(self, deltaT):
         self.xPos = self.xPos + self.speed['vx'] * deltaT
         self.yPos = self.yPos + self.speed['vy'] * deltaT
-        # print("########## Inside of directMove:  ", self.yPos, "##########")
 
     def updateAcceleration(self, Si, u, omega, g, deltaT):
-        # print(f"\n ### After Update values angle/Si {Si}, nonVectoralSpeed/u {u}, changedAngle/omega {omega}, changedAccel/g {g}, \
-        # self.speed['vx'] {self.speed['vx']}, self.speed['vy'] {self.speed['vy']}, self.accel['ax'] {self.accel['ax']}, self.accel['ay'] {self.accel['ay']}, \
-        #     self.nonVectoralSpeed {self.nonVectoralSpeed}")
         u = u + g * deltaT
         Si = Si + np.deg2rad(omega) * deltaT
         self.speed['vx'] = np.cos(Si) * u
@@ -281,9 +263,6 @@ class Agent():
         self.accel['ax'] = g * np.cos(Si) + u * np.deg2rad(omega) * np.sin(Si)
         self.accel['ay'] = g * np.sin(Si) - u * np.deg2rad(omega) * np.cos(Si)
         self.nonVectoralSpeed = u
-        # print(f"\n ### After Update values angle/Si {Si}, nonVectoralSpeed/u {u}, changedAngle/omega {omega}, changedAccel/g {g}, \
-        # self.speed['vx'] {self.speed['vx']}, self.speed['vy'] {self.speed['vy']}, self.accel['ax'] {self.accel['ax']}, self.accel['ay'] {self.accel['ay']}, \
-        #     self.nonVectoralSpeed {self.nonVectoralSpeed}")
 
     def maneuverMove(self, angle, nonVectoralSpeed, changedAngle, changedAccel, deltaT):
         self.updateAcceleration(angle, nonVectoralSpeed , changedAngle, changedAccel, deltaT)
