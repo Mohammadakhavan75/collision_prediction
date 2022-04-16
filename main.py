@@ -4,6 +4,8 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 import os
+from datetime import datetime
+import pathlib
 
 if __name__ == '__main__':
     x = 58000
@@ -18,7 +20,7 @@ if __name__ == '__main__':
     total_avg_score = []
     LoggerOn = True
     ismanouver = False
-
+    dtLogger = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
     world = Env(x, y)
     # agentList = world.initAgent(agnetNumber)
     agentList = world.initAgent(random=False)
@@ -41,9 +43,11 @@ if __name__ == '__main__':
         while not all(done):
             counter += 1
             stepCounter += 1
-            # if stepCounter % 5000 == 0:
-            #     print("counter is: ", stepCounter)
-            #     print("Agent attribute: ", agentList[0].getAttr(), agentList[1].getAttr())
+            if stepCounter % 1000 == 0:
+                print(f"stepCounter is: {stepCounter} , episode is : {i}")
+                print("Agent attribute: ", agentList[0].getAttr())
+                print("Target attribute: ", agentList[1].getAttr())
+                print("Duplicate attribute: ", duplicateAgent.getAttr())
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
                     if agent.id == 1:
@@ -95,9 +99,8 @@ if __name__ == '__main__':
             agent.save_models()
 
         if LoggerOn:
-            logPath = f"./Log/episode_{i}/"
-            if not os.path.exists(logPath):
-                os.mkdir(logPath)
+            logPath = f"./Log/{dtLogger}/episode_{i}/"
+            pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
 
             print("score is: ", score, "avg_score:", avg_score)
 
@@ -108,7 +111,7 @@ if __name__ == '__main__':
 
             plt.figure(figsize=(16, 10))
             plt.plot(total_avg_score)
-            plt.savefig(logPath + "avg_score" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "total_avg_score" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
