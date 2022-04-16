@@ -20,7 +20,7 @@ if __name__ == '__main__':
     total_avg_score = []
     LoggerOn = True
     ismanouver = False
-    dtLogger = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
+    dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     world = Env(x, y)
     # agentList = world.initAgent(agnetNumber)
     agentList = world.initAgent(random=False)

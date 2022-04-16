@@ -25,7 +25,7 @@ class Agent():
         self.nonVectoralSpeed = 250
         self.angle = 0
         self.nonVectoralAccel = 0
-        self.timetoManouver = 160
+        self.timetoManouver = 160 # 300
            
     def initModel(self, n_actions=4, learning_rate=0.0001, gamma=0.99):
         self.gamma = gamma

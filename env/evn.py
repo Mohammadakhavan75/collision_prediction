@@ -99,7 +99,7 @@ class Env():
         rewardLeft = -0.01 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
-        R_c = 1
+        R_c = 3
         k_r = 0.01
         k_c = 0.01
         k_v = 0.001
@@ -113,25 +113,24 @@ class Env():
             return agent.reward
         
         # 2- Heading error and Cross Error reward
-        if not agent.checkArrival(): # what is kc? what is kv? what is delta u p?
+        if not agent.checkArrival(): # what is kc? what is kv? what is delta u p?  # TODO: check for non manuver
             # print("reward Heading") 
 
             rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
-            rHeadingCross2 = np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+            rHeadingCross2 = np.exp(-k_d * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
            # agent.reward += (rHeadingCross1 + rHeadingCross2)/2
-            agent.reward += rHeadingCross1
-            # print(f"rHeadingCross1: {rHeadingCross1}")
+            agent.reward += rHeadingCross2
+            # print(f"rHeadingCross1: {rHeadingCross2}")
         
         # B) Collision Avoidance Reward function
-        if agent.distfromAgent(target) < agent.acceptableDist:
+        if agent.distfromAgent(target) < agent.acceptableDist:  # TODO: check for manuver
             # print("reward dist from agent is low", agent.distfromAgent(target))
             agent.reward += rewardCollision
             return agent.reward
-        if agent.checkLeftofLine() > 1e-06:
+        if agent.checkLeftofLine() > 1e-06:  # TODO: check for manuver
             print("reward going left of line")
             agent.reward += rewardLeft
             return agent.reward
 
         return agent.reward
         
-
