@@ -17,11 +17,13 @@ if __name__ == '__main__':
     totalScore = []
     total_avg_score = []
     LoggerOn = True
+    ismanouver = False
 
     world = Env(x, y)
     # agentList = world.initAgent(agnetNumber)
     agentList = world.initAgent(random=False)
-    
+    duplicateAgent = agentList[2]
+    _ = agentList.pop(2)
     # world.initRender()    
     episodes=10
     for i in range(episodes):
@@ -39,17 +41,22 @@ if __name__ == '__main__':
         while not all(done):
             counter += 1
             stepCounter += 1
-            if stepCounter % 5000 == 0:
-                print("counter is: ", stepCounter)
-                print("Agent attribute: ", agentList[0].getAttr(), agentList[1].getAttr())
+            # if stepCounter % 5000 == 0:
+            #     print("counter is: ", stepCounter)
+            #     print("Agent attribute: ", agentList[0].getAttr(), agentList[1].getAttr())
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
-                    if agent.id == agentList[1].id:
+                    if agent.id == 1:
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT)
                         observation = [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']]
                         continue
-                    if all(agent.sensor(agentList)):
+                    if all(agent.sensor(agentList, ismanouver)):
+                        # print("\n\n$$$$$$$$$$$$$$$$$$$$\tBefore Manuover\t $$$$$$$$$$$$$$$$$$$$")
+                        # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
+                        #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
+                        duplicateAgent.directMove(deltaT)
+                        ismanouver = True
                         action = agent.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT)
                         score += reward
@@ -59,12 +66,19 @@ if __name__ == '__main__':
                         observation = observation_
                         px.append(agent.xPos)
                         py.append(agent.yPos)
+                        # print("#####################\tAfter Manuover\t ######################")
+                        # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
+                        #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
                     else:
+                        duplicateAgent.directMove(deltaT)
+                        ismanouver = False
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT)
                         observation = observation_
-                        px.append(agent.xPos)
-                        py.append(agent.yPos)
+                        # px.append(agent.xPos)
+                        # py.append(agent.yPos)
+                        # print(f"\n\nagent.xPos: {agent.xPos} , agent.yPos {agent.xPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
+                            # ,duplicateAgent.xPos: {duplicateAgent.xPos} , print(duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
                 else:
                     done[agent.id] = True
             

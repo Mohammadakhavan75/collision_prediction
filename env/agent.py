@@ -8,7 +8,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 
 class Agent():
-    def __init__(self, acceptableDistance=9260):
+    def __init__(self, acceptableDist=9260):
         self.xPos = 0
         self.yPos = 0
         self.firstPosX = 0
@@ -19,15 +19,14 @@ class Agent():
         self.accel = {'ax': 0, 'ay': 0}
         self.firstSpeed = self.speed
         self.id = 0
-        self.acceptableDist = acceptableDistance
+        self.acceptableDist = acceptableDist
         self.reward = 0
         self.nonVectoralSpeedStart = 250
         self.nonVectoralSpeed = 250
         self.angle = 0
         self.nonVectoralAccel = 0
         self.timetoManouver = 160
-        
-        
+           
     def initModel(self, n_actions=4, learning_rate=0.0001, gamma=0.99):
         self.gamma = gamma
         self.n_actions = n_actions
@@ -80,7 +79,6 @@ class Agent():
             (grad, var) 
             for (grad, var) in zip(
             gradient, self.actor_critic.trainable_variables) if grad is not None])
-
 
     def initRandomPosition(self, xWidth, yWidth, agents, id):
         loactionEmpty = []
@@ -159,8 +157,7 @@ class Agent():
         """
         self.speed['vx'] = np.cos(Si) * u
         self.speed['vy'] = np.sin(Si) * u
-        self.angle = Si
-        
+        self.angle = Si 
 
     def initLine(self):
         self.slope = (self.yDest - self.yPos) / (self.xDest - self.xPos)
@@ -211,30 +208,34 @@ class Agent():
         Dist = np.sqrt((self.getAttr()['xPos'] - self.getAttr()['xDest']) ** 2 + (self.getAttr()['yPos'] - self.getAttr()['yDest']) ** 2)
         return Dist
 
-    def TTCD(self, agent): # Calculating time to collision for direct move.
+    def TTCD(self, target): # Calculating time to collision for direct move.
         ttc = Symbol('ttc')
         ttcValue = solve(((self.xPos + self.speed['vx'] * ttc) - \
-                        (agent.xPos + agent.speed['vx'] * ttc)) ** 2 + \
+                        (target.xPos + target.speed['vx'] * ttc)) ** 2 + \
                         ((self.yPos + self.speed['vy'] * ttc) - \
-                        (agent.yPos + agent.speed['vy'] * ttc)) ** 2 - 46300, ttc)
+                        (target.yPos + target.speed['vy'] * ttc)) ** 2 - 46300, ttc)
         return ttcValue
 
-    def TTCM(self, agent): # Calculating time to collision for maneuver move.
+    def TTCM(self, target): # Calculating time to collision for maneuver move.
         ttc = Symbol('ttc')
         ttcValue = solve(((self.xPos + self.speed['vx'] * ttc + 0.5 * self.accel['ax'] * (ttc ** 2)) - \
-                        (agent.xPos + agent.speed['vx'] * ttc + 0.5 * agent.accel['ax'] * (ttc ** 2))) ** 2 + \
-                        ((self.yPos + self.speed['vy'] * ttc + 0.5 * self.accel['va'] * (ttc ** 2)) - \
-                        (agent.yPos + agent.speed['vy'] * ttc + 0.5 * agent.accel['va'] * (ttc ** 2))) ** 2, ttc )
-        print("ttcValue for maneuver move: ", ttcValue) 
+                        (target.xPos + target.speed['vx'] * ttc + 0.5 * target.accel['ax'] * (ttc ** 2))) ** 2 + \
+                        ((self.yPos + self.speed['vy'] * ttc + 0.5 * self.accel['ay'] * (ttc ** 2)) - \
+                        (target.yPos + target.speed['vy'] * ttc + 0.5 * target.accel['ay'] * (ttc ** 2))) ** 2, ttc )
+        # print("ttcValue for maneuver move: ", ttcValue) 
 
-    def sensor(self, agents):
+    def sensor(self, agents, ismanouver):
         sensorAlarm=[]
         for target in agents:
             if self.id == target.id:
                 continue
             else:
-                Dist = self.distfromAgent(target)
-                ttc = self.TTCD(target)
+                if ismanouver:
+                    Dist = self.distfromAgent(target)
+                    ttc = self.TTCM(target)
+                else:
+                    Dist = self.distfromAgent(target)
+                    ttc = self.TTCD(target)
                 if not bool(ttc):
                     sensorAlarm.append(False)
                     break
@@ -266,8 +267,8 @@ class Agent():
 
     def maneuverMove(self, angle, nonVectoralSpeed, changedAngle, changedAccel, deltaT):
         self.updateAcceleration(angle, nonVectoralSpeed , changedAngle, changedAccel, deltaT)
-        self.xPos = self.xPos + self.speed['vx'] + 0.5 * self.accel['ax'] * (deltaT ** 2)
-        self.yPos = self.yPos + self.speed['vy'] + 0.5 * self.accel['ay'] * (deltaT ** 2)
+        self.xPos = self.xPos + self.speed['vx'] * deltaT + 0.5 * self.accel['ax'] * (deltaT ** 2)
+        self.yPos = self.yPos + self.speed['vy'] * deltaT + 0.5 * self.accel['ay'] * (deltaT ** 2)
 
     def angleFromPathLine(self):
         distance = [self.xDest - self.xPos, self.yDest - self.yPos]

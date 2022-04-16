@@ -16,7 +16,6 @@ class Env():
     def initAgent(self, agnetNum=2, random=True):
         agentList = []
         if random:
-            # print("init agent random")
             for i in range(agnetNum):
                 print(agentList)
                 agn = Agent()
@@ -24,12 +23,14 @@ class Env():
                 agentList.append(agn)
             return agentList
         else:
-            # print("init agent predefine")
             ag = Agent()
             ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=0)
             agentList.append(ag)
             ag = Agent()
             ag.initPredefinePosition(x=self.xWidth, y=self.yWidth, xD=0, yD=0, id=1)
+            agentList.append(ag)
+            ag = Agent()
+            ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=2)
             agentList.append(ag)
             return agentList
 
@@ -40,7 +41,6 @@ class Env():
         else:
             changedAccel = action['accel'].numpy()
             changedAngle = action['angle'].numpy()
-            # print(f"\n@@@@@@@@\tInside step changedAccel {changedAccel}, changedAngle {changedAngle}")
             agent.maneuverMove(agent.angle, agent.nonVectoralSpeed, changedAngle, changedAccel, deltaT)
             return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList), None, None
         
@@ -113,23 +113,25 @@ class Env():
             return agent.reward
         
         # 2- Heading error and Cross Error reward
-        # if not agent.checkArrival(): # what is kc? what is kv? what is delta u p?
-        #     print("reward Heading") 
+        if not agent.checkArrival(): # what is kc? what is kv? what is delta u p?
+            # print("reward Heading") 
 
-        #     rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
-        #     rHeadingCross2 = np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
-        #    # agent.reward += (rHeadingCross1 + rHeadingCross2)/2
-        #     agent.reward += rHeadingCross1
-        #     print(f"rHeadingCross1: {rHeadingCross1}")
+            rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+            rHeadingCross2 = np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+           # agent.reward += (rHeadingCross1 + rHeadingCross2)/2
+            agent.reward += rHeadingCross1
+            # print(f"rHeadingCross1: {rHeadingCross1}")
         
         # B) Collision Avoidance Reward function
-        if agent.distfromAgent(target) < 9260:
-            print("reward dist from agent is low", agent.distfromAgent(target))
+        if agent.distfromAgent(target) < agent.acceptableDist:
+            # print("reward dist from agent is low", agent.distfromAgent(target))
             agent.reward += rewardCollision
             return agent.reward
         if agent.checkLeftofLine() > 1e-06:
             print("reward going left of line")
             agent.reward += rewardLeft
+            return agent.reward
+
         return agent.reward
         
 
