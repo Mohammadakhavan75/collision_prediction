@@ -29,8 +29,8 @@ if __name__ == '__main__':
     # world.initRender()    
     episodes=10
     for i in range(episodes):
-        px = []
-        py = []
+        px, pxt, pxd = [], [], []
+        py, pyt, pyd = [], [], []
         print("episode %f started!", i)
         done=[False for _ in agentList]
         observation = world.reset(agentList)
@@ -48,12 +48,22 @@ if __name__ == '__main__':
                 print("Agent attribute: ", agentList[0].getAttr())
                 print("Target attribute: ", agentList[1].getAttr())
                 print("Duplicate attribute: ", duplicateAgent.getAttr())
+                logPath = f"./Log/{dtLogger}/episode_{i}/"
+                pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
+                plt.figure(figsize=(16, 10))
+                plt.plot(px, py, color='b')
+                plt.plot(pxd, pyd, color='r')
+                plt.plot(pxt, pyt, color='k')
+                plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close()
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
                     if agent.id == 1:
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT)
                         observation = [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']]
+                        pxt.append(agent.xPos)
+                        pyt.append(agent.yPos)
                         continue
                     if all(agent.sensor(agentList, ismanouver)):
                         # print("\n\n$$$$$$$$$$$$$$$$$$$$\tBefore Manuover\t $$$$$$$$$$$$$$$$$$$$")
@@ -70,6 +80,8 @@ if __name__ == '__main__':
                         observation = observation_
                         px.append(agent.xPos)
                         py.append(agent.yPos)
+                        pxd.append(duplicateAgent.xPos)
+                        pyd.append(duplicateAgent.yPos)
                         # print("#####################\tAfter Manuover\t ######################")
                         # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
                         #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
@@ -127,6 +139,18 @@ if __name__ == '__main__':
             plt.figure(figsize=(16, 10))
             plt.plot(px, py)
             plt.savefig(logPath + "pathAgent" + str(i) + "_" + str() + ".png")
+            plt.close()
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(pxt, pyt)
+            plt.savefig(logPath + "pathDuplicate" + str(i) + "_" + str() + ".png")
+            plt.close()
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(px, py, color='b')
+            plt.plot(pxd, pyd, color='r')
+            plt.plot(pxt, pyt, color='k')
+            plt.savefig(logPath + "pathCombine" + str(i) + "_" + str() + ".png")
             plt.close()
 
 
