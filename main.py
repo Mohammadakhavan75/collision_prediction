@@ -65,6 +65,13 @@ if __name__ == '__main__':
                 plt.plot(pxt[-100:], pyt[-100:], color='k')
                 plt.savefig(logPath + "pathlast100Combine" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close()
+
+                plt.figure(figsize=(16, 10))
+                plt.plot(px[-1000:], py[-1000:], color='b')
+                plt.plot(pxd[-1000:], pyd[-1000:], color='r')
+                plt.plot(pxt[-1000:], pyt[-1000:], color='k')
+                plt.savefig(logPath + "pathlast1000Combine" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close()
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
                     if agent.id == 1:
