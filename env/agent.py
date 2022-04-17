@@ -28,6 +28,7 @@ class Agent():
         self.timetoManouver = 160 # 300
            
     def initModel(self, n_actions=4, learning_rate=0.0001, gamma=0.99):
+        tf.config.set_visible_devices([], 'GPU')
         self.gamma = gamma
         self.n_actions = n_actions
         self.action = None
