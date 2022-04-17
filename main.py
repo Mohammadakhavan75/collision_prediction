@@ -34,6 +34,7 @@ if __name__ == '__main__':
         print("episode %f started!", i)
         done=[False for _ in agentList]
         observation = world.reset(agentList)
+        duplicateAgent.resetAttr()
         episodeScore = []
         score = 0
         stepCounter = 0
@@ -55,6 +56,13 @@ if __name__ == '__main__':
                 plt.plot(pxd, pyd, color='r')
                 plt.plot(pxt, pyt, color='k')
                 plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close()
+
+                plt.figure(figsize=(16, 10))
+                plt.plot(px[-100:], py[-100:], color='b')
+                plt.plot(pxd[-100:], pyd[-100:], color='r')
+                plt.plot(pxt[-100:], pyt[-100:], color='k')
+                plt.savefig(logPath + "pathlast100Combine" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close()
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
