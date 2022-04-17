@@ -48,9 +48,9 @@ if __name__ == '__main__':
             stepCounter += 1
             if stepCounter % 100 == 0:
                 print(f"stepCounter is: {stepCounter} , episode is : {i}")
-                print("Agent attribute: ", agentList[0].getAttr())
-                print("Target attribute: ", agentList[1].getAttr())
-                print("Duplicate attribute: ", duplicateAgent.getAttr())
+                print("Age attribute: ", agentList[0].getAttr())
+                print("Tar attribute: ", agentList[1].getAttr())
+                print("Dup attribute: ", duplicateAgent.getAttr())
                 print(f"score: {score}")
                 logPath = f"./Log/{dtLogger}/episode_{i}/"
                 pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)

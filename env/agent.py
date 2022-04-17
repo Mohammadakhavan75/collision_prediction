@@ -65,7 +65,7 @@ class Agent():
         action_probabilitiesAngle = tfp.distributions.Categorical(probs[0][4:])
         actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
         self.action = {'accel': actionSpeed, 'angle': actionAngle}
-        
+
         return self.action
 
     def save_models(self):
@@ -130,7 +130,7 @@ class Agent():
             self.initSpeed(self.nonVectoralSpeedStart)
             self.initLine()
             self.initModel()
-            self.__firstSpeed = self.speed
+            self.firstSpeed = self.speed
         
         if all(loactionEmpty):
             self.xPos = x
@@ -143,7 +143,7 @@ class Agent():
             self.initSpeed(self.nonVectoralSpeedStart)
             self.initLine()
             self.initModel()
-            self.__firstSpeed = self.speed
+            self.firstSpeed = self.speed
         else:
             print(loactionEmpty)
             self.initRandomPosition(xWidth, yWidth, agents, id)
@@ -190,7 +190,11 @@ class Agent():
         self.yPos = self.firstPosY
         self.speed = {'vx': 0, 'vy': 0}
         self.accel = {'ax': 0, 'ay': 0}
-        self.speed = self.__firstSpeed
+        self.speed = self.firstSpeed
+        self.reward = 0
+        self.nonVectoralSpeed = self.nonVectoralSpeedStart
+        self.angle = 0
+        self.nonVectoralAccel = 0
 
     def getAttr(self):
         return {'xPos': self.xPos, 'yPos': self.yPos, 'xDest': self.xDest, 'yDest': self.yDest,
