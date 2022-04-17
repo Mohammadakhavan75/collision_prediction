@@ -18,6 +18,7 @@ if __name__ == '__main__':
     score_history = []
     totalScore = []
     total_avg_score = []
+    mean_episode_score = []
     LoggerOn = True
     ismanouver = False
     dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
@@ -68,7 +69,7 @@ if __name__ == '__main__':
                 if not agent.checkArrival() and not agent.outofBound():
                     if agent.id == 1:
                         action = None
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT)
+                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         observation = [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']]
                         pxt.append(agent.xPos)
                         pyt.append(agent.yPos)
@@ -80,7 +81,7 @@ if __name__ == '__main__':
                         duplicateAgent.directMove(deltaT)
                         ismanouver = True
                         action = agent.choose_action(observation)
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT)
+                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         score += reward
                         totalScore.append(score)
                         episodeScore.append(score)
@@ -97,7 +98,7 @@ if __name__ == '__main__':
                         duplicateAgent.directMove(deltaT)
                         ismanouver = False
                         action = None
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT)
+                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         observation = observation_
                         # px.append(agent.xPos)
                         # py.append(agent.yPos)
@@ -114,6 +115,7 @@ if __name__ == '__main__':
         score_history.append(score)
         avg_score = np.mean(score_history[-100:])
         total_avg_score.append(avg_score)
+        mean_episode_score.append(np.mean(episodeScore))
         if avg_score > best_score:
             best_score = avg_score
             agent.save_models()
@@ -142,6 +144,11 @@ if __name__ == '__main__':
             plt.figure(figsize=(16, 10))
             plt.plot(episodeScore)
             plt.savefig(logPath + "episodeScore" + str(i) + "_" + str() + ".png")
+            plt.close()
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(mean_episode_score)
+            plt.savefig(logPath + "mean_episode_score" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
