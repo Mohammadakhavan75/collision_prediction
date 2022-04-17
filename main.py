@@ -27,7 +27,7 @@ if __name__ == '__main__':
     duplicateAgent = agentList[2]
     _ = agentList.pop(2)
     # world.initRender()    
-    episodes=10
+    episodes=1000
     for i in range(episodes):
         px, pxt, pxd = [], [], []
         py, pyt, pyd = [], [], []
