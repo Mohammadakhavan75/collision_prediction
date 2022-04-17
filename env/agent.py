@@ -47,6 +47,27 @@ class Agent():
 
         return self.action
 
+    def initModelCategorical(self, n_actions=16, learning_rate=0.0001, gamma=0.99):
+        tf.config.set_visible_devices([], 'GPU')
+        self.gamma = gamma
+        self.n_actions = n_actions
+        self.action = None
+        self.action_space = [i for i in range(self.n_actions)]
+
+        self.actor_critic = ActorCriticNetwork(n_actions=n_actions)
+        self.actor_critic.compile(optimizer=Adam(learning_rate=learning_rate))
+
+    def choose_action_categorical(self, observation):
+        state = tf.convert_to_tensor([observation])
+        _, probs = self.actor_critic(state)
+
+        action_probabilitiesSpeed = tfp.distributions.Categorical(probs[0][:4])
+        action_probabilitiesAngle = tfp.distributions.Categorical(probs[0][4:])
+        actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
+        self.action = {'accel': actionSpeed, 'angle': actionAngle}
+        
+        return self.action
+
     def save_models(self):
         print('... saving models ...')
         self.actor_critic.save_weights(self.actor_critic.checkpoint_file)
@@ -222,7 +243,7 @@ class Agent():
         ttcValue = solve(((self.xPos + self.speed['vx'] * ttc + 0.5 * self.accel['ax'] * (ttc ** 2)) - \
                         (target.xPos + target.speed['vx'] * ttc + 0.5 * target.accel['ax'] * (ttc ** 2))) ** 2 + \
                         ((self.yPos + self.speed['vy'] * ttc + 0.5 * self.accel['ay'] * (ttc ** 2)) - \
-                        (target.yPos + target.speed['vy'] * ttc + 0.5 * target.accel['ay'] * (ttc ** 2))) ** 2, ttc )
+                        (target.yPos + target.speed['vy'] * ttc + 0.5 * target.accel['ay'] * (ttc ** 2))) ** 2 - 46300, ttc )
         # print("ttcValue for maneuver move: ", ttcValue) 
 
     def sensor(self, agents, ismanouver):
@@ -231,10 +252,11 @@ class Agent():
             if self.id == target.id:
                 continue
             else:
-                if ismanouver:
-                    Dist = self.distfromAgent(target)
-                    ttc = self.TTCM(target)
-                else:
+                # if ismanouver:
+                #     Dist = self.distfromAgent(target)
+                #     ttc = self.TTCM(target)
+                # else:
+                if True:
                     Dist = self.distfromAgent(target)
                     ttc = self.TTCD(target)
                 if not bool(ttc):

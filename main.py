@@ -19,8 +19,10 @@ if __name__ == '__main__':
     totalScore = []
     total_avg_score = []
     mean_episode_score = []
+    actionsListEpisode=[]
     LoggerOn = True
     ismanouver = False
+    breakEpisode = False
     dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     world = Env(x, y)
     # agentList = world.initAgent(agnetNumber)
@@ -37,19 +39,19 @@ if __name__ == '__main__':
         observation = world.reset(agentList)
         duplicateAgent.resetAttr()
         episodeScore = []
+        actionsListEpisode = []
         score = 0
         stepCounter = 0
-        for ag in agentList:
-            print(ag.getAttr())
-        valval=False
-        while not all(done):
+        breakEpisode = False
+        while not all(done) and not breakEpisode:
             counter += 1
             stepCounter += 1
-            if stepCounter % 1000 == 0:
+            if stepCounter % 100 == 0:
                 print(f"stepCounter is: {stepCounter} , episode is : {i}")
                 print("Agent attribute: ", agentList[0].getAttr())
                 print("Target attribute: ", agentList[1].getAttr())
                 print("Duplicate attribute: ", duplicateAgent.getAttr())
+                print(f"score: {score}")
                 logPath = f"./Log/{dtLogger}/episode_{i}/"
                 pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
                 plt.figure(figsize=(16, 10))
@@ -62,16 +64,18 @@ if __name__ == '__main__':
                 plt.figure(figsize=(16, 10))
                 plt.plot(px[-100:], py[-100:], color='b')
                 plt.plot(pxd[-100:], pyd[-100:], color='r')
-                plt.plot(pxt[-100:], pyt[-100:], color='k')
+                # plt.plot(pxt[-100:], pyt[-100:], color='k')
                 plt.savefig(logPath + "pathlast100Combine" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close()
 
                 plt.figure(figsize=(16, 10))
-                plt.plot(px[-1000:], py[-1000:], color='b')
-                plt.plot(pxd[-1000:], pyd[-1000:], color='r')
-                plt.plot(pxt[-1000:], pyt[-1000:], color='k')
+                plt.plot(px[-100:], py[-100:], color='b')
+                plt.plot(pxd[-100:], pyd[-100:], color='r')
+                plt.plot(pxt[-100:], pyt[-100:], color='k')
                 plt.savefig(logPath + "pathlast1000Combine" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close()
+
+
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
                     if agent.id == 1:
@@ -94,18 +98,25 @@ if __name__ == '__main__':
                         episodeScore.append(score)
                         agent.learn(observation, reward, observation_, False)
                         observation = observation_
+                        actionsListEpisode.append({"episode": i, "step": stepCounter, "action": action})
                         px.append(agent.xPos)
                         py.append(agent.yPos)
                         pxd.append(duplicateAgent.xPos)
                         pyd.append(duplicateAgent.yPos)
+                        if score < -1500:
+                            breakEpisode = True
+                            print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
+                            break
                         # print("#####################\tAfter Manuover\t ######################")
                         # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
                         #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
+                        # print(f"Inside if : agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
                     else:
                         duplicateAgent.directMove(deltaT)
                         ismanouver = False
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                        # print(f"inside else: agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
                         observation = observation_
                         # px.append(agent.xPos)
                         # py.append(agent.yPos)
@@ -114,9 +125,6 @@ if __name__ == '__main__':
                 else:
                     done[agent.id] = True
             
-            if str(observation_[0]) == 'nan':
-                print(observation_[0])
-                quit()
         print("episode %f finished!", i)
 
         score_history.append(score)
@@ -174,6 +182,10 @@ if __name__ == '__main__':
             plt.plot(pxt, pyt, color='k')
             plt.savefig(logPath + "pathCombine" + str(i) + "_" + str() + ".png")
             plt.close()
+
+            with open(logPath + "actionList" + str(i) + ".txt", 'w') as f:
+                for aa in actionsListEpisode:
+                    f.write("%s\n" % aa)
 
 
 
