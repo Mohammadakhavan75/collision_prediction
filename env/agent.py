@@ -24,6 +24,7 @@ class Agent():
         self.nonVectoralSpeedStart = 250
         self.nonVectoralSpeed = 250
         self.angle = 0
+        self.firstAngle = 0
         self.nonVectoralAccel = 0
         self.timetoManouver = 160 # 300
         self.logProbs = 0
@@ -183,6 +184,8 @@ class Agent():
         self.speed['vx'] = np.cos(Si) * u
         self.speed['vy'] = np.sin(Si) * u
         self.angle = Si 
+        self.firstAngle = Si
+        print(f"ID: {self.id}, angle: {self.angle}, si: {Si}")
 
     def initLine(self):
         self.slope = (self.yDest - self.yPos) / (self.xDest - self.xPos)
@@ -196,7 +199,7 @@ class Agent():
         self.speed = copy.deepcopy(self.firstSpeed)
         self.reward = 0
         self.nonVectoralSpeed = self.nonVectoralSpeedStart
-        self.angle = 0
+        self.angle = self.firstAngle
         self.nonVectoralAccel = 0
 
     def getAttr(self):
@@ -287,15 +290,19 @@ class Agent():
         self.yPos = self.yPos + self.speed['vy'] * deltaT
 
     def updateAcceleration(self, Si, u, omega, g, deltaT):
+        # print(f"ID: {self.id}, Si: {Si}, np.deg2rad(omega) * deltaT: {np.deg2rad(omega) * deltaT}")
         u = u + g * deltaT
         Si = Si + np.deg2rad(omega) * deltaT
+        # print(f"BUPDATE ## ID: {self.id}, self.speed['vx']: {self.speed['vx']}, self.speed['vy']: {self.speed['vy']}, Si: {Si}, np.cos(Si): {np.cos(Si)}, u: {u}")
         self.speed['vx'] = np.cos(Si) * u
         self.speed['vy'] = np.sin(Si) * u
+        # print(f"AAAAAUU ## ID: {self.id}, self.speed['vx']: {self.speed['vx']}, self.speed['vy']: {self.speed['vy']}, Si: {Si}, np.cos(Si): {np.cos(Si)}, u: {u}")
         self.accel['ax'] = g * np.cos(Si) + u * np.deg2rad(omega) * np.sin(Si)
         self.accel['ay'] = g * np.sin(Si) - u * np.deg2rad(omega) * np.cos(Si)
         self.nonVectoralSpeed = u
 
     def maneuverMove(self, angle, nonVectoralSpeed, changedAngle, changedAccel, deltaT):
+        # print(f"ID: {self.id}, angle: {angle}")
         self.updateAcceleration(angle, nonVectoralSpeed , changedAngle, changedAccel, deltaT)
         self.xPos = self.xPos + self.speed['vx'] * deltaT + 0.5 * self.accel['ax'] * (deltaT ** 2)
         self.yPos = self.yPos + self.speed['vy'] * deltaT + 0.5 * self.accel['ay'] * (deltaT ** 2)

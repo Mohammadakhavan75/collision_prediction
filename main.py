@@ -30,7 +30,7 @@ if __name__ == '__main__':
     agentList = world.initAgent(random=False)
     duplicateAgent = agentList[2]
     _ = agentList.pop(2)
-    # world.initRender()    
+    # world.initRender()
     episodes=1000
     logPath = f"./Log/{dtLogger}/"
     pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
@@ -95,7 +95,6 @@ if __name__ == '__main__':
                 # plt.savefig(logPath + "pathlast1000Combine" + str(i) + "_" + str(stepCounter) + ".png")
                 # plt.close()
 
-
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
                     if agent.id == 1:
@@ -115,6 +114,7 @@ if __name__ == '__main__':
                         duplicateAgent.directMove(deltaT)
                         ismanouver = True
                         manouverStarted = True
+                        # print(f"agentID: {agent.id}, agentspeedx: {agent.speed['vx']}, agentspeedy: {agent.speed['vy']}, agentaccelx: {agent.accel['ax']}, agentaccely: {agent.accel['ay']}")
                         action = agent.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         observation_ = [ob/x for ob in observation_]
@@ -140,6 +140,7 @@ if __name__ == '__main__':
                     elif agent.distfromPathLine() > 1:
                         # print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
+                        # print(f"agentID: {agent.id}, agentspeedx: {agent.speed['vx']}, agentspeedy: {agent.speed['vy']}, agentaccelx: {agent.accel['ax']}, agentaccely: {agent.accel['ay']}")
                         action = agent.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         observation_ = [ob/x for ob in observation_]
