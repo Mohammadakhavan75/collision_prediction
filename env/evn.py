@@ -96,7 +96,7 @@ class Env():
         rewardFinal = 1000 # 1000
         rewardTowardGoal = 1
         rewardCollision = -1000 # -1000
-        rewardLeft = -10 # -10
+        rewardLeft = -1 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
         R_c = 3
@@ -123,11 +123,13 @@ class Env():
             # print(f"rHeadingCross2: {rHeadingCross2}, agnet ID: {agent.id}")
         
         # B) Collision Avoidance Reward function
-        if agent.distfromAgent(target) < agent.acceptableDist and ismanouver:
+        # if agent.distfromAgent(target) < agent.acceptableDist and ismanouver:
+        if agent.distfromAgent(target) < agent.acceptableDist:
             # print("reward dist from agent is low", agent.distfromAgent(target))
             agent.reward += rewardCollision
             return agent.reward
-        if agent.checkLeftofLine() > 1e-06 and ismanouver:
+        # if agent.checkLeftofLine() > 1e-06 and ismanouver:
+        if agent.checkLeftofLine() > 1e-06:
             print("############## reward going left of line ##################")
             agent.reward += rewardLeft
             return agent.reward

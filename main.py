@@ -54,12 +54,13 @@ if __name__ == '__main__':
                 print(f"score: {score}")
                 logPath = f"./Log/{dtLogger}/episode_{i}/"
                 pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
-                plt.figure(figsize=(16, 10))
-                plt.plot(px, py, color='b')
-                plt.plot(pxd, pyd, color='r')
-                plt.plot(pxt, pyt, color='k')
-                plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png")
-                plt.close()
+
+                # plt.figure(figsize=(16, 10))
+                # plt.plot(px, py, color='b')
+                # plt.plot(pxd, pyd, color='r')
+                # plt.plot(pxt, pyt, color='k')
+                # plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png")
+                # plt.close()
 
                 plt.figure(figsize=(16, 10))
                 plt.plot(px[-100:], py[-100:], color='b')
@@ -67,13 +68,13 @@ if __name__ == '__main__':
                 # plt.plot(pxt[-100:], pyt[-100:], color='k')
                 plt.savefig(logPath + "pathlast100Combine" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close()
-
-                plt.figure(figsize=(16, 10))
-                plt.plot(px[-100:], py[-100:], color='b')
-                plt.plot(pxd[-100:], pyd[-100:], color='r')
-                plt.plot(pxt[-100:], pyt[-100:], color='k')
-                plt.savefig(logPath + "pathlast1000Combine" + str(i) + "_" + str(stepCounter) + ".png")
-                plt.close()
+ 
+                # plt.figure(figsize=(16, 10))
+                # plt.plot(px[-100:], py[-100:], color='b')
+                # plt.plot(pxd[-100:], pyd[-100:], color='r')
+                # plt.plot(pxt[-100:], pyt[-100:], color='k')
+                # plt.savefig(logPath + "pathlast1000Combine" + str(i) + "_" + str(stepCounter) + ".png")
+                # plt.close()
 
 
             for agent in agentList:
