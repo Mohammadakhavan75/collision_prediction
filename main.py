@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import os
 from datetime import datetime
 import pathlib
-import sys
 
 if __name__ == '__main__':
     x = 58000
@@ -34,7 +33,6 @@ if __name__ == '__main__':
     episodes=1000
     logPath = f"./Log/{dtLogger}/"
     pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
-    sys.stdout = open(logPath + 'output.txt', 'w')
     for i in range(episodes):
         px, pxt, pxd = [], [], []
         py, pyt, pyd = [], [], []
