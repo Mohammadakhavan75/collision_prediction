@@ -48,25 +48,6 @@ class Env():
         for ag in agents:
             ag.resetAttr()
         return [agents[0].xPos, agents[0].yPos, agents[0].speed['vx'], agents[0].speed['vy'], agents[0].accel['ax'], agents[0].accel['ay'], agents[1].xPos, agents[1].yPos, agents[1].speed['vx'], agents[1].speed['vy'], agents[1].accel['ax'], agents[1].accel['ay']], agents
-
-    # def initRender(self):
-    #     self.fig = plt.figure()
-    #     self.ax = self.fig.add_subplot(111)
-    #     self.fig.show()
-
-    # def render(self, agents):
-    #     for i, agent in enumerate(agents):
-    #         self.x[i].append(agent.xPos)
-    #         self.y[i].append(agent.yPos)
-            
-    #         self.ax.plot(self.x[0], self.y[0], color='b')
-    #         # self.ax.plot(self.x[1], self.y[1], color='r')
-            
-    #         self.fig.canvas.draw()
-    #         time.sleep(0.1)
-            
-    #         self.ax.set_xlim(left=max(0, i-50), right=i+50)
-    #         # self.ax.set_ylim(left=max(0, i-50), right=i+50)
             
 
     def selectStatus(self, agentObserver, agentTarget): # TODO: Are you sure the |v| sign in doc is not ||v|| and not mean length of vector? !!!!!!!! andaze speedd
@@ -128,8 +109,8 @@ class Env():
             # print("reward dist from agent is low", agent.distfromAgent(target))
             agent.reward += rewardCollision
             return agent.reward
-        # if agent.checkLeftofLine() > 1e-06 and ismanouver:
-        if agent.checkLeftofLine() > 1e-06:
+        if agent.checkLeftofLine() > 1e-06 and agent.distfromAgent(target) < agent.acceptableDist:
+        # if agent.checkLeftofLine() > 1e-06:
             # print("############## reward going left of line ##################")
             agent.reward += rewardLeft
             return agent.reward

@@ -41,10 +41,11 @@ if __name__ == '__main__':
         observation, agentList = world.reset(agentList)
         duplicateAgent.resetAttr()
         episodeScore = []
-        actionsListEpisode = []
+        actionsListEpisode = [[],[]]
         score = 0
         stepCounter = 0
         breakEpisode = False
+        manouverStarted = False
         for ag in agentList:
             print(ag.getAttr())
         print(duplicateAgent.getAttr())
@@ -95,8 +96,10 @@ if __name__ == '__main__':
                         # print("\n\n$$$$$$$$$$$$$$$$$$$$\tBefore Manuover\t $$$$$$$$$$$$$$$$$$$$")
                         # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
                         #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
+                        print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
                         ismanouver = True
+                        manouverStarted = True
                         action = agent.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         score += reward
@@ -104,7 +107,8 @@ if __name__ == '__main__':
                         episodeScore.append(score)
                         agent.learn(observation, reward, observation_, False)
                         observation = observation_
-                        actionsListEpisode.append({"episode": i, "step": stepCounter, "action": action})
+                        actionsListEpisode[0].append(action['accel'].numpy())
+                        actionsListEpisode[1].append(action['angle'].numpy())
                         px.append(agent.xPos)
                         py.append(agent.yPos)
                         pxd.append(duplicateAgent.xPos)
@@ -117,7 +121,28 @@ if __name__ == '__main__':
                         # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
                         #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
                         # print(f"Inside if : agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
+                    elif agent.distfromPathLine() > 1:
+                        print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
+                        duplicateAgent.directMove(deltaT)
+                        action = agent.choose_action(observation)
+                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                        score += reward
+                        totalScore.append(score)
+                        episodeScore.append(score)
+                        agent.learn(observation, reward, observation_, False)
+                        observation = observation_
+                        actionsListEpisode[0].append(action['accel'].numpy())
+                        actionsListEpisode[1].append(action['angle'].numpy())
+                        px.append(agent.xPos)
+                        py.append(agent.yPos)
+                        pxd.append(duplicateAgent.xPos)
+                        pyd.append(duplicateAgent.yPos)
+                        if score < -20000:
+                            breakEpisode = True
+                            print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
+                            break
                     else:
+                        print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
                         ismanouver = False
                         action = None
@@ -197,6 +222,16 @@ if __name__ == '__main__':
             plt.plot(pxd, pyd, color='r')
             plt.plot(pxt, pyt, color='k')
             plt.savefig(logPath + "pathCombine" + str(i) + "_" + str() + ".png")
+            plt.close()
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(actionsListEpisode[0], color='b')
+            plt.savefig(logPath + "actionAccel" + str(i) + "_" + str() + ".png")
+            plt.close()
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(actionsListEpisode[1], color='b')
+            plt.savefig(logPath + "actionAngle" + str(i) + "_" + str() + ".png")
             plt.close()
 
             with open(logPath + "actionList" + str(i) + ".txt", 'w') as f:
