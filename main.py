@@ -33,6 +33,7 @@ if __name__ == '__main__':
     # world.initRender()    
     episodes=1000
     logPath = f"./Log/{dtLogger}/"
+    pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
     sys.stdout = open(logPath + 'output.txt', 'w')
     for i in range(episodes):
         px, pxt, pxd = [], [], []
