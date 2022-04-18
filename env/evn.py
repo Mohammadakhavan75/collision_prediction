@@ -47,7 +47,7 @@ class Env():
     def reset(self, agents):
         for ag in agents:
             ag.resetAttr()
-        return [agents[0].xPos, agents[0].yPos, agents[0].speed['vx'], agents[0].speed['vy'], agents[0].accel['ax'], agents[0].accel['ay'], agents[1].xPos, agents[1].yPos, agents[1].speed['vx'], agents[1].speed['vy'], agents[1].accel['ax'], agents[1].accel['ay']]
+        return [agents[0].xPos, agents[0].yPos, agents[0].speed['vx'], agents[0].speed['vy'], agents[0].accel['ax'], agents[0].accel['ay'], agents[1].xPos, agents[1].yPos, agents[1].speed['vx'], agents[1].speed['vy'], agents[1].accel['ax'], agents[1].accel['ay']], agents
 
     # def initRender(self):
     #     self.fig = plt.figure()
@@ -130,7 +130,7 @@ class Env():
             return agent.reward
         # if agent.checkLeftofLine() > 1e-06 and ismanouver:
         if agent.checkLeftofLine() > 1e-06:
-            print("############## reward going left of line ##################")
+            # print("############## reward going left of line ##################")
             agent.reward += rewardLeft
             return agent.reward
 

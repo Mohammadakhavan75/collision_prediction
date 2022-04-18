@@ -38,13 +38,16 @@ if __name__ == '__main__':
         py, pyt, pyd = [], [], []
         print("episode %f started!", i)
         done=[False for _ in agentList]
-        observation = world.reset(agentList)
+        observation, agentList = world.reset(agentList)
         duplicateAgent.resetAttr()
         episodeScore = []
         actionsListEpisode = []
         score = 0
         stepCounter = 0
         breakEpisode = False
+        for ag in agentList:
+            print(ag.getAttr())
+        print(duplicateAgent.getAttr())
         while not all(done) and not breakEpisode:
             counter += 1
             stepCounter += 1

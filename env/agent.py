@@ -6,7 +6,7 @@ from .network import ActorCriticNetwork
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow_probability as tfp
-
+import copy
 class Agent():
     def __init__(self, acceptableDist=9260):
         self.xPos = 0
@@ -17,7 +17,7 @@ class Agent():
         self.yDest = 0
         self.speed = {'vx': 0, 'vy': 0}
         self.accel = {'ax': 0, 'ay': 0}
-        self.firstSpeed = self.speed
+        self.firstSpeed = copy.deepcopy(self.speed)
         self.id = 0
         self.acceptableDist = acceptableDist
         self.reward = 0
@@ -130,7 +130,7 @@ class Agent():
             self.initSpeed(self.nonVectoralSpeedStart)
             self.initLine()
             self.initModel()
-            self.firstSpeed = self.speed
+            self.firstSpeed = copy.deepcopy(self.speed)
         
         if all(loactionEmpty):
             self.xPos = x
@@ -143,7 +143,7 @@ class Agent():
             self.initSpeed(self.nonVectoralSpeedStart)
             self.initLine()
             self.initModel()
-            self.firstSpeed = self.speed
+            self.firstSpeed = copy.deepcopy(self.speed)
         else:
             print(loactionEmpty)
             self.initRandomPosition(xWidth, yWidth, agents, id)
@@ -159,7 +159,7 @@ class Agent():
         self.initSpeed(self.nonVectoralSpeedStart)
         self.initLine()
         self.initModel()
-        self.__firstSpeed = self.speed
+        self.firstSpeed = copy.deepcopy(self.speed)
 
     def initSpeed(self, u):
         Si = np.arctan((self.yDest - self.yPos) / (self.xDest - self.xPos)) 
@@ -190,7 +190,7 @@ class Agent():
         self.yPos = self.firstPosY
         self.speed = {'vx': 0, 'vy': 0}
         self.accel = {'ax': 0, 'ay': 0}
-        self.speed = self.firstSpeed
+        self.speed = copy.deepcopy(self.firstSpeed)
         self.reward = 0
         self.nonVectoralSpeed = self.nonVectoralSpeedStart
         self.angle = 0
