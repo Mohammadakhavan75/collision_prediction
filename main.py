@@ -106,7 +106,7 @@ if __name__ == '__main__':
                         py.append(agent.yPos)
                         pxd.append(duplicateAgent.xPos)
                         pyd.append(duplicateAgent.yPos)
-                        if score < -1500:
+                        if score < -20000:
                             breakEpisode = True
                             print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
                             break
@@ -120,8 +120,13 @@ if __name__ == '__main__':
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         score += reward
-                        # print(f"inside else: agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
                         observation = observation_
+                        if score < -20000:
+                            breakEpisode = True
+                            print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
+                            break
+
+                        # print(f"inside else: agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
                         # px.append(agent.xPos)
                         # py.append(agent.yPos)
                         # print(f"\n\nagent.xPos: {agent.xPos} , agent.yPos {agent.xPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
