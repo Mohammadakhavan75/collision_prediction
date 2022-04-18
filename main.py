@@ -119,6 +119,7 @@ if __name__ == '__main__':
                         ismanouver = False
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                        score += reward
                         # print(f"inside else: agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
                         observation = observation_
                         # px.append(agent.xPos)
