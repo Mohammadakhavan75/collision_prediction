@@ -28,16 +28,6 @@ class Agent():
         self.timetoManouver = 160 # 300
         self.logProbs = 0
            
-    def initModel(self, n_actions=4, learning_rate=0.0001, gamma=0.99):
-        tf.config.set_visible_devices([], 'GPU')
-        self.gamma = gamma
-        self.n_actions = n_actions
-        self.action = None
-        self.action_space = [i for i in range(self.n_actions)]
-
-        self.actor_critic = ActorCriticNetwork(n_actions=n_actions)
-        self.actor_critic.compile(optimizer=Adam(learning_rate=learning_rate))
-
     def initModelCategorical(self, n_actions=16, learning_rate=0.0001, gamma=0.99):
         tf.config.set_visible_devices([], 'GPU')
         self.gamma = gamma
@@ -66,7 +56,17 @@ class Agent():
     def load_models(self):
         print('... loading models ...')
         self.actor_critic.load_weights(self.actor_critic.checkpoint_file)
-    
+
+    def initModel(self, n_actions=4, learning_rate=0.001, gamma=0.99):
+        tf.config.set_visible_devices([], 'GPU')
+        self.gamma = gamma
+        self.n_actions = n_actions
+        self.action = None
+        self.action_space = [i for i in range(self.n_actions)]
+
+        self.actor_critic = ActorCriticNetwork(n_actions=n_actions)
+        self.actor_critic.compile(optimizer=Adam(learning_rate=learning_rate))
+
     def choose_action(self, observation):
         state = tf.convert_to_tensor([observation])
         _, probs = self.actor_critic(state)
@@ -74,7 +74,7 @@ class Agent():
         action_probabilitiesAngle = tfp.distributions.Normal(loc=probs.numpy()[0][2], scale=probs.numpy()[0][3])
         actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
         self.action = {'accel': actionSpeed, 'angle': actionAngle}
-        print(probs.numpy())
+        # print(probs.numpy())
         return self.action
 
     def learn(self, state, reward, state_, done):
