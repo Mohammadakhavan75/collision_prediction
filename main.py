@@ -42,6 +42,7 @@ if __name__ == '__main__':
         duplicateAgent.resetAttr()
         episodeScore = []
         actionsListEpisode = [[],[]]
+        outputofModel = []
         score = 0
         stepCounter = 0
         breakEpisode = False
@@ -101,6 +102,7 @@ if __name__ == '__main__':
                         ismanouver = True
                         manouverStarted = True
                         action = agent.choose_action(observation)
+                        print(agent.logProbs)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         score += reward
                         totalScore.append(score)

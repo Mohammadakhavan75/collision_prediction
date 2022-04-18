@@ -26,6 +26,7 @@ class Agent():
         self.angle = 0
         self.nonVectoralAccel = 0
         self.timetoManouver = 160 # 300
+        self.logProbs = 0
            
     def initModel(self, n_actions=4, learning_rate=0.0001, gamma=0.99):
         tf.config.set_visible_devices([], 'GPU')
@@ -44,7 +45,7 @@ class Agent():
         action_probabilitiesAngle = tfp.distributions.Normal(loc=probs.numpy()[0][2], scale=probs.numpy()[0][3])
         actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
         self.action = {'accel': actionSpeed, 'angle': actionAngle}
-
+        self.logProbs = probs
         return self.action
 
     def initModelCategorical(self, n_actions=16, learning_rate=0.0001, gamma=0.99):
