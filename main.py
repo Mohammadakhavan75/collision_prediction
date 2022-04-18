@@ -97,7 +97,7 @@ if __name__ == '__main__':
                         # print("\n\n$$$$$$$$$$$$$$$$$$$$\tBefore Manuover\t $$$$$$$$$$$$$$$$$$$$")
                         # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
                         #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
-                        print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
+                        # print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
                         ismanouver = True
                         manouverStarted = True
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                         #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
                         # print(f"Inside if : agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
                     elif agent.distfromPathLine() > 1:
-                        print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
+                        # print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
                         action = agent.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
@@ -144,7 +144,7 @@ if __name__ == '__main__':
                             print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
                             break
                     else:
-                        print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
+                        # print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
                         ismanouver = False
                         action = None
