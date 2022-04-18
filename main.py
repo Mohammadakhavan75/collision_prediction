@@ -121,6 +121,10 @@ if __name__ == '__main__':
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         score += reward
                         observation = observation_
+                        px.append(agent.xPos)
+                        py.append(agent.yPos)
+                        pxd.append(duplicateAgent.xPos)
+                        pyd.append(duplicateAgent.yPos)
                         if score < -20000:
                             breakEpisode = True
                             print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
