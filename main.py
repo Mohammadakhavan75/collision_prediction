@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import os
 from datetime import datetime
 import pathlib
+import sys
 
 if __name__ == '__main__':
     x = 58000
@@ -31,6 +32,8 @@ if __name__ == '__main__':
     _ = agentList.pop(2)
     # world.initRender()    
     episodes=1000
+    logPath = f"./Log/{dtLogger}/"
+    sys.stdout = open(logPath + 'output.txt', 'w')
     for i in range(episodes):
         px, pxt, pxd = [], [], []
         py, pyt, pyd = [], [], []
