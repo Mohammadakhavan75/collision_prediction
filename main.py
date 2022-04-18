@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import os
 from datetime import datetime
 import pathlib
+import numpy
 
 if __name__ == '__main__':
     x = 58000
@@ -39,6 +40,7 @@ if __name__ == '__main__':
         print("episode %f started!", i)
         done=[False for _ in agentList]
         observation, agentList = world.reset(agentList)
+        observation = [ob/x for ob in observation]
         duplicateAgent.resetAttr()
         episodeScore = []
         actionsListEpisode = [[],[]]
@@ -73,7 +75,18 @@ if __name__ == '__main__':
                 plt.plot(px[-100:], py[-100:], color='b')
                 plt.plot(pxd[-100:], pyd[-100:], color='r')
                 # plt.plot(pxt[-100:], pyt[-100:], color='k')
-                plt.savefig(logPath + "pathlast100Combine" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.savefig(logPath + "pathlast_100_Combine" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close()
+
+                
+                plt.figure(figsize=(16, 10))
+                plt.plot(actionsListEpisode[0], color='b')
+                plt.savefig(logPath + "actionAccel_100_" + str(i) + "_" + str() + ".png")
+                plt.close()
+
+                plt.figure(figsize=(16, 10))
+                plt.plot(actionsListEpisode[1], color='b')
+                plt.savefig(logPath + "actionAngle_100_" + str(i) + "_" + str() + ".png")
                 plt.close()
  
                 # plt.figure(figsize=(16, 10))
@@ -90,6 +103,8 @@ if __name__ == '__main__':
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         observation = [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']]
+                        observation_ = [ob/x for ob in observation_]
+                        observation = [ob/x for ob in observation]
                         pxt.append(agent.xPos)
                         pyt.append(agent.yPos)
                         continue
@@ -102,8 +117,8 @@ if __name__ == '__main__':
                         ismanouver = True
                         manouverStarted = True
                         action = agent.choose_action(observation)
-                        print(agent.logProbs)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                        observation_ = [ob/x for ob in observation_]
                         score += reward
                         totalScore.append(score)
                         episodeScore.append(score)
@@ -128,6 +143,7 @@ if __name__ == '__main__':
                         duplicateAgent.directMove(deltaT)
                         action = agent.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                        observation_ = [ob/x for ob in observation_]
                         score += reward
                         totalScore.append(score)
                         episodeScore.append(score)
@@ -149,6 +165,7 @@ if __name__ == '__main__':
                         ismanouver = False
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                        observation_ = [ob/x for ob in observation_]
                         score += reward
                         observation = observation_
                         px.append(agent.xPos)

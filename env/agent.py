@@ -38,16 +38,6 @@ class Agent():
         self.actor_critic = ActorCriticNetwork(n_actions=n_actions)
         self.actor_critic.compile(optimizer=Adam(learning_rate=learning_rate))
 
-    def choose_action(self, observation):
-        state = tf.convert_to_tensor([observation])
-        _, probs = self.actor_critic(state)
-        action_probabilitiesSpeed = tfp.distributions.Normal(loc=probs.numpy()[0][0], scale=probs.numpy()[0][1])
-        action_probabilitiesAngle = tfp.distributions.Normal(loc=probs.numpy()[0][2], scale=probs.numpy()[0][3])
-        actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
-        self.action = {'accel': actionSpeed, 'angle': actionAngle}
-        self.logProbs = probs
-        return self.action
-
     def initModelCategorical(self, n_actions=16, learning_rate=0.0001, gamma=0.99):
         tf.config.set_visible_devices([], 'GPU')
         self.gamma = gamma
@@ -76,7 +66,17 @@ class Agent():
     def load_models(self):
         print('... loading models ...')
         self.actor_critic.load_weights(self.actor_critic.checkpoint_file)
-         
+    
+    def choose_action(self, observation):
+        state = tf.convert_to_tensor([observation])
+        _, probs = self.actor_critic(state)
+        action_probabilitiesSpeed = tfp.distributions.Normal(loc=probs.numpy()[0][0], scale=probs.numpy()[0][1])
+        action_probabilitiesAngle = tfp.distributions.Normal(loc=probs.numpy()[0][2], scale=probs.numpy()[0][3])
+        actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
+        self.action = {'accel': actionSpeed, 'angle': actionAngle}
+        print(probs.numpy())
+        return self.action
+
     def learn(self, state, reward, state_, done):
         state = tf.convert_to_tensor([state], dtype=tf.float32)
         state_ = tf.convert_to_tensor([state_], dtype=tf.float32)
@@ -96,6 +96,8 @@ class Agent():
             actor_loss = -log_prob_accel * delta - log_prob_angle * delta
             critic_loss = delta ** 2
             total_loss = actor_loss + critic_loss
+            # print(f"reward: {reward}, state_value_: {state_value_}, state_value: {state_value}, log_prob_accel: {log_prob_accel}, log_prob_angle: {log_prob_angle}")
+            # print(f"delta: {delta}, actor_loss: {actor_loss}, total_loss: {total_loss}\n")
 
         gradient = tape.gradient(total_loss, self.actor_critic.trainable_variables)
         self.actor_critic.optimizer.apply_gradients([
