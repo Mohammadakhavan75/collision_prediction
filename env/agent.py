@@ -278,7 +278,7 @@ class Agent():
         ttcValue = solve(((self.xPos + self.speed['vx'] * ttc) - \
                         (target.xPos + target.speed['vx'] * ttc)) ** 2 + \
                         ((self.yPos + self.speed['vy'] * ttc) - \
-                        (target.yPos + target.speed['vy'] * ttc)) ** 2 - 46300, ttc)
+                        (target.yPos + target.speed['vy'] * ttc)) ** 2 - 85747600, ttc) # 46300, 85747600
         return ttcValue
 
     def TTCM(self, target): # Calculating time to collision for maneuver move.
@@ -286,7 +286,7 @@ class Agent():
         ttcValue = solve(((self.xPos + self.speed['vx'] * ttc + 0.5 * self.accel['ax'] * (ttc ** 2)) - \
                         (target.xPos + target.speed['vx'] * ttc + 0.5 * target.accel['ax'] * (ttc ** 2))) ** 2 + \
                         ((self.yPos + self.speed['vy'] * ttc + 0.5 * self.accel['ay'] * (ttc ** 2)) - \
-                        (target.yPos + target.speed['vy'] * ttc + 0.5 * target.accel['ay'] * (ttc ** 2))) ** 2 - 46300, ttc )
+                        (target.yPos + target.speed['vy'] * ttc + 0.5 * target.accel['ay'] * (ttc ** 2))) ** 2 - 85747600, ttc ) # 46300
         # print("ttcValue for maneuver move: ", ttcValue) 
 
     def sensor(self, agents, ismanouver):
@@ -302,6 +302,7 @@ class Agent():
                 if True:
                     Dist = self.distfromAgent(target)
                     ttc = self.TTCD(target)
+                    # print(f"ttc {ttc}, Dist, {Dist}")
                 if not bool(ttc):
                     sensorAlarm.append(False)
                     break
@@ -323,22 +324,30 @@ class Agent():
         self.yPos = self.yPos + self.speed['vy'] * deltaT
 
     def updateAcceleration(self, Si, u, omega, g, deltaT):
-        # print(f"ID: {self.id}, Si: {Si}, np.deg2rad(omega) * deltaT: {np.deg2rad(omega) * deltaT}")
         u = u + g * deltaT
-        Si = Si + np.deg2rad(omega) * deltaT
-        # print(f"BUPDATE ## ID: {self.id}, self.speed['vx']: {self.speed['vx']}, self.speed['vy']: {self.speed['vy']}, Si: {Si}, np.cos(Si): {np.cos(Si)}, u: {u}")
+        Si = Si + omega * deltaT
+        # if Si > 2 * np.pi:
+        #     Si = Si - 2 * np.pi
+        # if Si < 0:
+        #     Si = Si + 2 * np.pi
+        self.accel['ax'] = g * np.cos(Si) + u * omega * np.sin(Si)
+        self.accel['ay'] = g * np.sin(Si) - u * omega * np.cos(Si)
+        self.nonVectoralSpeed = u
+        self.angle = Si
+
+
+    def updateSpeed(self, Si, u):
         self.speed['vx'] = np.cos(Si) * u
         self.speed['vy'] = np.sin(Si) * u
-        # print(f"AAAAAUU ## ID: {self.id}, self.speed['vx']: {self.speed['vx']}, self.speed['vy']: {self.speed['vy']}, Si: {Si}, np.cos(Si): {np.cos(Si)}, u: {u}")
-        self.accel['ax'] = g * np.cos(Si) + u * np.deg2rad(omega) * np.sin(Si)
-        self.accel['ay'] = g * np.sin(Si) - u * np.deg2rad(omega) * np.cos(Si)
-        self.nonVectoralSpeed = u
+
 
     def maneuverMove(self, angle, nonVectoralSpeed, changedAngle, changedAccel, deltaT):
         # print(f"ID: {self.id}, angle: {angle}")
         self.updateAcceleration(angle, nonVectoralSpeed , changedAngle, changedAccel, deltaT)
         self.xPos = self.xPos + self.speed['vx'] * deltaT + 0.5 * self.accel['ax'] * (deltaT ** 2)
         self.yPos = self.yPos + self.speed['vy'] * deltaT + 0.5 * self.accel['ay'] * (deltaT ** 2)
+        self.updateSpeed(angle, nonVectoralSpeed)
+        
 
     def angleFromPathLine(self):
         distance = [self.xDest - self.xPos, self.yDest - self.yPos]

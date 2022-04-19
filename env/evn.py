@@ -45,6 +45,7 @@ class Env():
             # print(f"action['accel'].numpy(): {action['accel'].numpy()}, action['angle'].numpy(): {action['angle'].numpy()}")
             changedAccel = self.accelerationBoundryCat[action['accel'].numpy()]
             changedAngle = self.angleBoundryCat[action['angle'].numpy()]
+            # print(f"changedAccel: {changedAccel}, changedAngle: {changedAngle}")
             agent.maneuverMove(agent.angle, agent.nonVectoralSpeed, changedAngle, changedAccel, deltaT)
             # return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList, ismanouver), None, None
             return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList, ismanouver), None, None
@@ -114,7 +115,7 @@ class Env():
             # print("reward dist from agent is low", agent.distfromAgent(target))
             agent.reward += rewardCollision * 1/agent.distfromAgent(target)
             return agent.reward
-        if agent.checkLeftofLine() > 1e-06 and agent.distfromAgent(target) < agent.acceptableDist:
+        if agent.checkLeftofLine() > 1e-06 and agent.distfromAgent(target) > agent.acceptableDist:
         # if agent.checkLeftofLine() > 1e-06:
             # print("############## reward going left of line ##################")
             agent.reward += rewardLeft
