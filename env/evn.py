@@ -112,7 +112,7 @@ class Env():
         # if agent.distfromAgent(target) < agent.acceptableDist and ismanouver:
         if agent.distfromAgent(target) < agent.acceptableDist:
             # print("reward dist from agent is low", agent.distfromAgent(target))
-            agent.reward += rewardCollision
+            agent.reward += rewardCollision * 1/agent.distfromAgent(target)
             return agent.reward
         if agent.checkLeftofLine() > 1e-06 and agent.distfromAgent(target) < agent.acceptableDist:
         # if agent.checkLeftofLine() > 1e-06:
