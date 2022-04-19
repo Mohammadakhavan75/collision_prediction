@@ -24,6 +24,8 @@ if __name__ == '__main__':
     LoggerOn = True
     ismanouver = False
     breakEpisode = False
+    maxDistfromPath = 0
+    maxDistfromPathPerEpisode = 0
     dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     world = Env(x, y)
     # agentList = world.initAgent(agnetNumber)
@@ -47,6 +49,7 @@ if __name__ == '__main__':
         outputofModel = []
         score = 0
         stepCounter = 0
+        maxDistfromPathPerEpisode = 0
         breakEpisode = False
         manouverStarted = False
         for ag in agentList:
@@ -61,6 +64,7 @@ if __name__ == '__main__':
                 print("Tar attribute: ", agentList[1].getAttr())
                 print("Dup attribute: ", duplicateAgent.getAttr())
                 print(f"score: {score}")
+                print(f"maxDistfromPath: {maxDistfromPath}, maxDistfromPathPerEpisode: {maxDistfromPathPerEpisode}")
                 logPath = f"./Log/{dtLogger}/episode_{i}/"
                 pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
 
@@ -110,7 +114,7 @@ if __name__ == '__main__':
                         # print("\n\n$$$$$$$$$$$$$$$$$$$$\tBefore Manuover\t $$$$$$$$$$$$$$$$$$$$")
                         # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
                         #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
-                        # print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
+                        # print(f"inside all(sensors) True agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
                         ismanouver = True
                         manouverStarted = True
@@ -131,6 +135,10 @@ if __name__ == '__main__':
                         py.append(agent.yPos)
                         pxd.append(duplicateAgent.xPos)
                         pyd.append(duplicateAgent.yPos)
+                        if maxDistfromPathPerEpisode < agent.distfromPathLine():
+                            maxDistfromPathPerEpisode = agent.distfromPathLine()
+                        if maxDistfromPath < agent.distfromPathLine():
+                            maxDistfromPath = agent.distfromPathLine()
                         if score < -20000:
                             breakEpisode = True
                             print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
@@ -140,7 +148,7 @@ if __name__ == '__main__':
                         #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
                         # print(f"Inside if : agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
                     elif agent.distfromPathLine() > 1:
-                        # print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
+                        # print(f"inside if of agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
                         # print(f"agentID: {agent.id}, agentspeedx: {agent.speed['vx']}, agentspeedy: {agent.speed['vy']}, agentaccelx: {agent.accel['ax']}, agentaccely: {agent.accel['ay']}")
                         # action = agent.choose_action(observation)
@@ -159,12 +167,16 @@ if __name__ == '__main__':
                         py.append(agent.yPos)
                         pxd.append(duplicateAgent.xPos)
                         pyd.append(duplicateAgent.yPos)
+                        if maxDistfromPathPerEpisode < agent.distfromPathLine():
+                            maxDistfromPathPerEpisode = agent.distfromPathLine()
+                        if maxDistfromPath < agent.distfromPathLine():
+                            maxDistfromPath = agent.distfromPathLine()
                         if score < -20000:
                             breakEpisode = True
                             print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
                             break
                     else:
-                        # print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
+                        # print(f"inside else of agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
                         ismanouver = False
                         action = None
@@ -204,6 +216,7 @@ if __name__ == '__main__':
             pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
 
             print("score is: ", score, "avg_score:", avg_score)
+            print(f"maxDistfromPath: {maxDistfromPath}, maxDistfromPathPerEpisode: {maxDistfromPathPerEpisode}")
 
             plt.figure(figsize=(16, 10))
             plt.plot(score_history)
