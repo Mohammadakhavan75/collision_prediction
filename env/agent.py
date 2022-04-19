@@ -29,7 +29,7 @@ class Agent():
         self.timetoManouver = 160 # 300
         self.logProbs = 0
            
-    def initModelCategorical(self, n_actions=16, learning_rate=0.0001, gamma=0.99):
+    def initModelCategorical(self, n_actions=18, learning_rate=0.001, gamma=0.99):
         tf.config.set_visible_devices([], 'GPU')
         self.gamma = gamma
         self.n_actions = n_actions
@@ -43,12 +43,42 @@ class Agent():
         state = tf.convert_to_tensor([observation])
         _, probs = self.actor_critic(state)
 
-        action_probabilitiesSpeed = tfp.distributions.Categorical(probs[0][:4])
-        action_probabilitiesAngle = tfp.distributions.Categorical(probs[0][4:])
+        action_probabilitiesSpeed = tfp.distributions.Categorical(probs[0][:9])
+        action_probabilitiesAngle = tfp.distributions.Categorical(probs[0][9:])
         actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
         self.action = {'accel': actionSpeed, 'angle': actionAngle}
 
         return self.action
+
+    def learnCategorical(self, state, reward, state_, done):
+        state = tf.convert_to_tensor([state], dtype=tf.float32)
+        state_ = tf.convert_to_tensor([state_], dtype=tf.float32)
+        reward = tf.convert_to_tensor(reward, dtype=tf.float32) # not fed to NN
+        with tf.GradientTape(persistent=True) as tape:
+            state_value, probs = self.actor_critic(state)
+            state_value_, _ = self.actor_critic(state_)
+            state_value = tf.squeeze(state_value)
+            state_value_ = tf.squeeze(state_value_)
+
+            # print(f"probs.numpy()[0]: {probs.numpy()[0]}")
+            action_probabilitiesAccel = tfp.distributions.Categorical(probs.numpy()[0][:9])
+            action_probabilitiesAngle = tfp.distributions.Categorical(probs.numpy()[0][9:])
+            log_prob_accel = action_probabilitiesAccel.log_prob(self.action['accel'])
+            log_prob_angle = action_probabilitiesAngle.log_prob(self.action['angle'])
+
+            delta = reward + self.gamma * state_value_ * (1 - int(done)) - state_value
+            actor_loss = -log_prob_accel * delta - log_prob_angle * delta
+            critic_loss = delta ** 2
+            total_loss = actor_loss + critic_loss
+            # print(f"reward: {reward}, state_value_: {state_value_}, state_value: {state_value}, log_prob_accel: {log_prob_accel}, log_prob_angle: {log_prob_angle}")
+            # print(f"delta: {delta}, actor_loss: {actor_loss}, total_loss: {total_loss}\n")
+
+        gradient = tape.gradient(total_loss, self.actor_critic.trainable_variables)
+        self.actor_critic.optimizer.apply_gradients([
+            (grad, var) 
+            for (grad, var) in zip(
+            gradient, self.actor_critic.trainable_variables) if grad is not None])
+
 
     def save_models(self):
         print('... saving models ...')
@@ -133,7 +163,8 @@ class Agent():
             self.id = id
             self.initSpeed(self.nonVectoralSpeedStart)
             self.initLine()
-            self.initModel()
+            # self.initModel()
+            self.initModelCategorical()
             self.firstSpeed = copy.deepcopy(self.speed)
         
         if all(loactionEmpty):
@@ -146,7 +177,8 @@ class Agent():
             self.id = id
             self.initSpeed(self.nonVectoralSpeedStart)
             self.initLine()
-            self.initModel()
+            # self.initModel()
+            self.initModelCategorical()
             self.firstSpeed = copy.deepcopy(self.speed)
         else:
             print(loactionEmpty)
@@ -162,7 +194,8 @@ class Agent():
         self.id = id
         self.initSpeed(self.nonVectoralSpeedStart)
         self.initLine()
-        self.initModel()
+        # self.initModel()
+        self.initModelCategorical()
         self.firstSpeed = copy.deepcopy(self.speed)
 
     def initSpeed(self, u):

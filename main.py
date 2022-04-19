@@ -115,13 +115,15 @@ if __name__ == '__main__':
                         ismanouver = True
                         manouverStarted = True
                         # print(f"agentID: {agent.id}, agentspeedx: {agent.speed['vx']}, agentspeedy: {agent.speed['vy']}, agentaccelx: {agent.accel['ax']}, agentaccely: {agent.accel['ay']}")
-                        action = agent.choose_action(observation)
+                        # action = agent.choose_action(observation)
+                        action = agent.choose_action_categorical(observation)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         observation_ = [ob/x for ob in observation_]
                         score += reward
                         totalScore.append(score)
                         episodeScore.append(score)
-                        agent.learn(observation, reward, observation_, False)
+                        # agent.learn(observation, reward, observation_, False)
+                        agent.learnCategorical(observation, reward, observation_, False)
                         observation = observation_
                         actionsListEpisode[0].append(action['accel'].numpy())
                         actionsListEpisode[1].append(action['angle'].numpy())
@@ -141,13 +143,15 @@ if __name__ == '__main__':
                         # print(f"agent.distfromPathLine() {agent.distfromPathLine()}")
                         duplicateAgent.directMove(deltaT)
                         # print(f"agentID: {agent.id}, agentspeedx: {agent.speed['vx']}, agentspeedy: {agent.speed['vy']}, agentaccelx: {agent.accel['ax']}, agentaccely: {agent.accel['ay']}")
-                        action = agent.choose_action(observation)
+                        # action = agent.choose_action(observation)
+                        action = agent.choose_action_categorical(observation)
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         observation_ = [ob/x for ob in observation_]
                         score += reward
                         totalScore.append(score)
                         episodeScore.append(score)
-                        agent.learn(observation, reward, observation_, False)
+                        # agent.learn(observation, reward, observation_, False)
+                        agent.learnCategorical(observation, reward, observation_, False)
                         observation = observation_
                         actionsListEpisode[0].append(action['accel'].numpy())
                         actionsListEpisode[1].append(action['angle'].numpy())
