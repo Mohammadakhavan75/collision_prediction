@@ -83,7 +83,7 @@ class Env():
         else:
             target = agentList[1]
         rewardFinal = 1000 # 1000
-        rewardTowardGoal = 1
+        rewardTowardGoalConst = 0.0001
         rewardCollision = -1000 # -1000
         rewardLeft = -1 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
@@ -101,7 +101,9 @@ class Env():
             agent.reward += rewardFinal
             return agent.reward
         else:
-            rr = rewardTowardGoal * np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)  - np.sqrt((agent.xPos - agent.xDest) ** 2 + (agent.yPos - agent.yDest) ** 2)
+            rr = np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)  - np.sqrt((agent.xPos - agent.xDest) ** 2 + (agent.yPos - agent.yDest) ** 2)
+            rr = rewardTowardGoalConst * rr
+            # print(f"rr: {rr}")
             agent.reward += rr
 
             # 2- Heading error and Cross Error reward
@@ -125,7 +127,7 @@ class Env():
             # print("############## reward going left of line ##################")
             # agent.reward += rewardLeft
         if agent.checkAngleAction(target, lastDist, changedAngle):
-            print(f"reward going left of line: changedAngle: {changedAngle}, lastDist {lastDist}, agent.distfromAgent(target): {agent.distfromAgent(target)}")
+            # print(f"reward going left of line: changedAngle: {changedAngle}, lastDist {lastDist}, agent.distfromAgent(target): {agent.distfromAgent(target)}")
             agent.reward += rewardLeft
 
         return agent.reward

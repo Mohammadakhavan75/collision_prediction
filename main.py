@@ -124,6 +124,7 @@ if __name__ == '__main__':
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         observation_ = [ob/x for ob in observation_]
                         score += reward
+                        # print(f"reward: {reward}, score: {score}")
                         totalScore.append(score)
                         episodeScore.append(score)
                         # agent.learn(observation, reward, observation_, False)
@@ -156,6 +157,7 @@ if __name__ == '__main__':
                         observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
                         observation_ = [ob/x for ob in observation_]
                         score += reward
+                        # print(f"reward: {reward}, score: {score}")
                         totalScore.append(score)
                         episodeScore.append(score)
                         # agent.learn(observation, reward, observation_, False)
