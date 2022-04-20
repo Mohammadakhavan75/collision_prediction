@@ -317,7 +317,7 @@ class Agent():
                 if True:
                     Dist = self.distfromAgent(target)
                     ttc = self.TTCD(target)
-                    print(f"ttc {ttc}, Dist, {Dist}")
+                    # print(f"ttc {ttc}, Dist, {Dist}")
                 if not bool(ttc):
                     sensorAlarm.append(False)
                     break
@@ -383,7 +383,7 @@ class Agent():
         __angle = np.dot(list(self.speed.values()), list(self.firstSpeed.values())) / (np.linalg.norm(list(self.speed.values())) * np.linalg.norm(list(self.firstSpeed.values())))
         return np.arccos(__angle)
 
-    def checkAngleAction(self, angle, target, lastDistance):
+    def checkAngleAction(self, target, lastDistance, angle):
         if angle > 0 and lastDistance > self.distfromAgent(target):
             return True
         else:

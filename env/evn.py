@@ -124,7 +124,8 @@ class Env():
         # if agent.checkLeftofLine() > 1e-06:
             # print("############## reward going left of line ##################")
             # agent.reward += rewardLeft
-        if agent.checkAngleAction(agentList[1], lastDist, changedAngle):
+        if agent.checkAngleAction(target, lastDist, changedAngle):
+            print(f"reward going left of line: changedAngle: {changedAngle}, lastDist {lastDist}, agent.distfromAgent(target): {agent.distfromAgent(target)}")
             agent.reward += rewardLeft
 
         return agent.reward
