@@ -78,14 +78,15 @@ class Env():
         return changedAccel, changedAngle
 
     def stepReward(self, agent, agentList, lastDist, changedAngle):
+        returnReward = 0
         if agent.id != agentList[0].id:
             target = agentList[0]
         else:
             target = agentList[1]
         rewardFinal = 1000 # 1000
         rewardTowardGoalConst = 0.0001
-        rewardCollision = -1000 # -1000
-        rewardLeft = -1 # -10
+        rewardCollision = -100000 # -1000
+        rewardLeft = -0.1 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
         R_c = 3
@@ -99,21 +100,24 @@ class Env():
         if agent.checkArrival():
             print("reward arrival")
             agent.reward += rewardFinal
+            returnReward += rewardFinal
             return agent.reward
-        else:
+        elif lastDist < self.distfromAgent(target):
             rr = np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)  - np.sqrt((agent.xPos - agent.xDest) ** 2 + (agent.yPos - agent.yDest) ** 2)
-            rr = rewardTowardGoalConst * rr
-            # print(f"rr: {rr}")
-            agent.reward += rr
+            rere = 1/(1 + np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)) * rr
+            # print(f"rr: {rere}")
+            agent.reward += rere
+            returnReward += rere
 
             # 2- Heading error and Cross Error reward
         # if not agent.checkArrival() and not ismanouver:
-        if not agent.checkArrival():
+        if not agent.checkArrival() and lastDist < self.distfromAgent(target):
             # print("reward Heading") 
 
             rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
             rHeadingCross2 = np.exp(-k_d * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
             agent.reward += rHeadingCross2
+            returnReward += rHeadingCross2
             # print(f"rHeadingCross2: {rHeadingCross2}, agnet ID: {agent.id}")
         
         # B) Collision Avoidance Reward function
@@ -121,7 +125,7 @@ class Env():
         if agent.distfromAgent(target) < agent.acceptableDist:
             # print("reward dist from agent is low", agent.distfromAgent(target))
             agent.reward += rewardCollision * 1/agent.distfromAgent(target)
-
+            returnReward += rewardCollision * 1/agent.distfromAgent(target)
         # if agent.checkLeftofLine() > 1e-06:
         # if agent.checkLeftofLine() > 1e-06:
             # print("############## reward going left of line ##################")
@@ -129,6 +133,8 @@ class Env():
         if agent.checkAngleAction(target, lastDist, changedAngle):
             # print(f"reward going left of line: changedAngle: {changedAngle}, lastDist {lastDist}, agent.distfromAgent(target): {agent.distfromAgent(target)}")
             agent.reward += rewardLeft
+            returnReward += rewardLeft
 
-        return agent.reward
+
+        return returnReward
         
