@@ -41,6 +41,7 @@ class Env():
         if action == None:
             lastDist = agent.distfromAgent(agentList[1])
             agent.directMove(deltaT)
+            changedAngle = 0
             return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList, lastDist, changedAngle), None, None
         else:
             # print(f"action['accel'].numpy(): {action['accel'].numpy()}, action['angle'].numpy(): {action['angle'].numpy()}")
@@ -123,7 +124,7 @@ class Env():
         # if agent.checkLeftofLine() > 1e-06:
             # print("############## reward going left of line ##################")
             # agent.reward += rewardLeft
-        if agent.checkAngleAction():
+        if agent.checkAngleAction(agentList[1], lastDist, changedAngle):
             agent.reward += rewardLeft
 
         return agent.reward
