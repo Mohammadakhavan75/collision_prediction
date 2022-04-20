@@ -9,8 +9,8 @@ import pathlib
 import numpy
 
 if __name__ == '__main__':
-    x = 58000 * 2
-    y = 58000 * 2
+    x = 58000 * 1.3
+    y = 58000 * 1.3
     deltaT = 0.05
     arrival = 0
     agnetNumber = 2

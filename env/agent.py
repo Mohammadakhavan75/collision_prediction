@@ -11,6 +11,8 @@ class Agent():
     def __init__(self, acceptableDist=9260):
         self.xPos = 0
         self.yPos = 0
+        self.xbPos = 0
+        self.ybPos = 0
         self.firstPosX = 0
         self.firstPosY = 0
         self.xDest = 0
@@ -26,8 +28,9 @@ class Agent():
         self.angle = 0
         self.firstAngle = 0
         self.nonVectoralAccel = 0
-        self.timetoManouver = 160 # 300
+        self.timetoManouver = 190 # 300
         self.logProbs = 0
+        self.lastDistance = 0
            
     def initModelCategorical(self, n_actions=18, learning_rate=0.001, gamma=0.99):
         tf.config.set_visible_devices([], 'GPU')
@@ -156,6 +159,8 @@ class Agent():
         else:       
             self.xPos = x
             self.yPos = y
+            self.xbPos = x
+            self.ybPos = y
             self.firstPosX = self.xPos
             self.firstPosY = self.yPos
             self.xDest = xD
@@ -170,6 +175,8 @@ class Agent():
         if all(loactionEmpty):
             self.xPos = x
             self.yPos = y
+            self.xbPos = x
+            self.ybPos = y
             self.firstPosX = self.xPos
             self.firstPosY = self.yPos
             self.xDest = xD
@@ -187,6 +194,8 @@ class Agent():
     def initPredefinePosition(self, x, y, xD, yD, id):
         self.xPos = x
         self.yPos = y
+        self.xbPos = x
+        self.ybPos = y
         self.firstPosX = self.xPos
         self.firstPosY = self.yPos
         self.xDest = xD
@@ -261,8 +270,8 @@ class Agent():
         else:
             return False
 
-    def distfromAgent(self, agent):
-        Dist = np.sqrt((self.getAttr()['xPos'] - agent.getAttr()['xPos']) ** 2 + (self.getAttr()['yPos'] - agent.getAttr()['yPos']) ** 2)
+    def distfromAgent(self, target):
+        Dist = np.sqrt((self.getAttr()['xPos'] - target.getAttr()['xPos']) ** 2 + (self.getAttr()['yPos'] - target.getAttr()['yPos']) ** 2)
         return Dist
 
     def distfromPathLine(self): # Distance from the line
@@ -289,6 +298,12 @@ class Agent():
                         (target.yPos + target.speed['vy'] * ttc + 0.5 * target.accel['ay'] * (ttc ** 2))) ** 2 - 85747600, ttc ) # 46300
         # print("ttcValue for maneuver move: ", ttcValue) 
 
+    def TTCDv2(self):
+        pass
+
+    def TTCMv2(self):
+        pass
+
     def sensor(self, agents, ismanouver):
         sensorAlarm=[]
         for target in agents:
@@ -302,7 +317,7 @@ class Agent():
                 if True:
                     Dist = self.distfromAgent(target)
                     ttc = self.TTCD(target)
-                    # print(f"ttc {ttc}, Dist, {Dist}")
+                    print(f"ttc {ttc}, Dist, {Dist}")
                 if not bool(ttc):
                     sensorAlarm.append(False)
                     break
@@ -340,7 +355,6 @@ class Agent():
         self.speed['vx'] = np.cos(Si) * u
         self.speed['vy'] = np.sin(Si) * u
 
-
     def maneuverMove(self, angle, nonVectoralSpeed, changedAngle, changedAccel, deltaT):
         # print(f"ID: {self.id}, angle: {angle}")
         self.updateAcceleration(angle, nonVectoralSpeed , changedAngle, changedAccel, deltaT)
@@ -348,7 +362,6 @@ class Agent():
         self.yPos = self.yPos + self.speed['vy'] * deltaT + 0.5 * self.accel['ay'] * (deltaT ** 2)
         self.updateSpeed(angle, nonVectoralSpeed)
         
-
     def angleFromPathLine(self):
         distance = [self.xDest - self.xPos, self.yDest - self.yPos]
         norm = np.sqrt(distance[0] ** 2 + distance[1] ** 2)
@@ -369,3 +382,9 @@ class Agent():
     def checkLeftofLine(self):
         __angle = np.dot(list(self.speed.values()), list(self.firstSpeed.values())) / (np.linalg.norm(list(self.speed.values())) * np.linalg.norm(list(self.firstSpeed.values())))
         return np.arccos(__angle)
+
+    def checkAngleAction(self, angle, target, lastDistance):
+        if angle > 0 and lastDistance > self.distfromAgent(target):
+            return True
+        else:
+            return False
