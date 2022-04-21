@@ -23,8 +23,8 @@ class Agent():
         self.id = 0
         self.acceptableDist = acceptableDist
         self.reward = 0
-        self.nonVectoralSpeedStart = 250
-        self.nonVectoralSpeed = 250
+        self.nonVectoralSpeedStart = 205
+        self.nonVectoralSpeed = 205
         self.angle = 0
         self.firstAngle = 0
         self.nonVectoralAccel = 0

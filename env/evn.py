@@ -14,6 +14,7 @@ class Env():
         self.accelerationBoundryCat = [-0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4]
         self.angleBoundryCat = [-0.05235987755982989 + i * 0.013089969389957472 for i in range(9)]
         self.actionSpaceCat = {'changedAccel': self.accelerationBoundryCat, 'changedAngle': self.angleBoundryCat}
+        self.rewardsList = [[],[],[],[]]
 
     
     def initAgent(self, agnetNum=2, random=True):
@@ -37,12 +38,12 @@ class Env():
             agentList.append(ag)
             return agentList
 
-    def step(self, action, agent, agentList, deltaT, ismanouver):
+    def step(self, action, agent, agentList, deltaT, ismanouver, rewardsList):
         if action == None:
             lastDist = agent.distfromAgent(agentList[1])
             agent.directMove(deltaT)
             changedAngle = 0
-            return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList, lastDist, changedAngle), None, None
+            return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList, lastDist, changedAngle, self.rewardsList), None, self.rewardsList
         else:
             # print(f"action['accel'].numpy(): {action['accel'].numpy()}, action['angle'].numpy(): {action['angle'].numpy()}")
             lastDist = agent.distfromAgent(agentList[1])
@@ -51,7 +52,7 @@ class Env():
             # print(f"changedAccel: {changedAccel}, changedAngle: {changedAngle}")
             agent.maneuverMove(agent.angle, agent.nonVectoralSpeed, changedAngle, changedAccel, deltaT)
             # return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList, ismanouver), None, None
-            return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList, lastDist, changedAngle), None, None
+            return [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']], self.stepReward(agent, agentList, lastDist, changedAngle, self.rewardsList), None, self.rewardsList
         
     def reset(self, agents):
         for ag in agents:
@@ -77,7 +78,7 @@ class Env():
         changedAngle = np.random.uniform(w.actionSpace['changedAngle'][0], w.actionSpace['changedAngle'][1])
         return changedAccel, changedAngle
 
-    def stepReward(self, agent, agentList, lastDist, changedAngle):
+    def stepReward(self, agent, agentList, lastDist, changedAngle, rewardsList):
         returnReward = 0
         if agent.id != agentList[0].id:
             target = agentList[0]
@@ -108,6 +109,7 @@ class Env():
             # print(f"rr: {rere}")
             agent.reward += rere
             returnReward += rere
+            rewardsList[0].append(rere)
 
             # 2- Heading error and Cross Error reward
         # if not agent.checkArrival() and not ismanouver:
@@ -118,6 +120,7 @@ class Env():
             rHeadingCross2 = np.exp(-k_d * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
             agent.reward += rHeadingCross2
             returnReward += rHeadingCross2
+            rewardsList[1].append(rHeadingCross2)
             # print(f"rHeadingCross2: {rHeadingCross2}, agnet ID: {agent.id}")
         
         # B) Collision Avoidance Reward function
@@ -126,6 +129,7 @@ class Env():
             # print("reward dist from agent is low", agent.distfromAgent(target))
             agent.reward += rewardCollision * 1/agent.distfromAgent(target)
             returnReward += rewardCollision * 1/agent.distfromAgent(target)
+            rewardsList[2].append(rewardCollision * 1/agent.distfromAgent(target))
         # if agent.checkLeftofLine() > 1e-06:
         # if agent.checkLeftofLine() > 1e-06:
             # print("############## reward going left of line ##################")
@@ -134,6 +138,7 @@ class Env():
             # print(f"reward going left of line: changedAngle: {changedAngle}, lastDist {lastDist}, agent.distfromAgent(target): {agent.distfromAgent(target)}")
             agent.reward += rewardLeft
             returnReward += rewardLeft
+            rewardsList[3].append(rewardLeft)
 
 
         return returnReward

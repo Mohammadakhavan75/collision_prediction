@@ -26,6 +26,7 @@ if __name__ == '__main__':
     breakEpisode = False
     maxDistfromPath = 0
     maxDistfromPathPerEpisode = 0
+    ContinousLearning = False
     dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     world = Env(x, y)
     # agentList = world.initAgent(agnetNumber)
@@ -47,6 +48,8 @@ if __name__ == '__main__':
         episodeScore = []
         actionsListEpisode = [[],[]]
         outputofModel = []
+        distAgent = [[],[]]
+        rewardsList = [[],[],[],[]]
         score = 0
         stepCounter = 0
         maxDistfromPathPerEpisode = 0
@@ -68,19 +71,19 @@ if __name__ == '__main__':
                 logPath = f"./Log/{dtLogger}/episode_{i}/"
                 pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
 
-                # plt.figure(figsize=(16, 10))
-                # plt.plot(px, py, color='b')
-                # plt.plot(pxd, pyd, color='r')
-                # plt.plot(pxt, pyt, color='k')
-                # plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png")
-                # plt.close()
-
                 plt.figure(figsize=(16, 10))
-                plt.plot(px[-100:], py[-100:], color='b')
-                plt.plot(pxd[-100:], pyd[-100:], color='r')
-                # plt.plot(pxt[-100:], pyt[-100:], color='k')
-                plt.savefig(logPath + "pathlast_100_Combine" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.plot(px, py, color='b')
+                plt.plot(pxd, pyd, color='r')
+                plt.plot(pxt, pyt, color='k')
+                plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close()
+
+                # plt.figure(figsize=(16, 10))
+                # plt.plot(px[-100:], py[-100:], color='b')
+                # plt.plot(pxd[-100:], pyd[-100:], color='r')
+                # # plt.plot(pxt[-100:], pyt[-100:], color='k')
+                # plt.savefig(logPath + "pathlast_100_Combine" + str(i) + "_" + str(stepCounter) + ".png")
+                # plt.close()
                 
                 plt.figure(figsize=(16, 10))
                 plt.plot(actionsListEpisode[0], color='b')
@@ -92,6 +95,20 @@ if __name__ == '__main__':
                 plt.savefig(logPath + "actionAngle_100_" + str(i) + "_" + str() + ".png")
                 plt.close()
  
+                plt.figure(figsize=(16, 10))
+                plt.plot(distAgent[0], color='b')
+                plt.plot(distAgent[1], color='r')
+                plt.savefig(logPath + "distAgent_100_" + str(i) + "_" + str() + ".png")
+                plt.close()
+
+
+                plt.figure(figsize=(16, 10))
+                plt.plot(info[0], color='b')
+                plt.plot(info[1], color='r')
+                plt.plot(info[2], color='g')
+                plt.plot(info[3], color='y')
+                plt.savefig(logPath + "RewardsList_100_" + str(i) + "_" + str() + ".png")
+                plt.close()
                 # plt.figure(figsize=(16, 10))
                 # plt.plot(px[-100:], py[-100:], color='b')
                 # plt.plot(pxd[-100:], pyd[-100:], color='r')
@@ -101,6 +118,10 @@ if __name__ == '__main__':
 
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
+                    if agent.id == agentList[0]:
+                        target = agentList[1]
+                    else:
+                        target = agentList[0]
                     # if agent.id == 1:
                     #     action = None
                     #     observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
@@ -111,99 +132,87 @@ if __name__ == '__main__':
                     #     pyt.append(agent.yPos)
                     #     continue
                     if all(agent.sensor(agentList, ismanouver)):
-                        # print("\n\n$$$$$$$$$$$$$$$$$$$$\tBefore Manuover\t $$$$$$$$$$$$$$$$$$$$")
-                        # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
-                        #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
-                        # print(f"inside all(sensors) True agent.distfromPathLine() {agent.distfromPathLine()}")
-                        duplicateAgent.directMove(deltaT)
                         ismanouver = True
                         manouverStarted = True
-                        # print(f"agentID: {agent.id}, agentspeedx: {agent.speed['vx']}, agentspeedy: {agent.speed['vy']}, agentaccelx: {agent.accel['ax']}, agentaccely: {agent.accel['ay']}")
                         # action = agent.choose_action(observation)
                         action = agent.choose_action_categorical(observation)
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver, rewardsList)
                         observation_ = [ob/x for ob in observation_]
                         score += reward
-                        # print(f"reward: {reward}, score: {score}")
                         totalScore.append(score)
                         episodeScore.append(score)
                         # agent.learn(observation, reward, observation_, False)
                         agent.learnCategorical(observation, reward, observation_, False)
                         observation = observation_
+                        
                         actionsListEpisode[0].append(action['accel'].numpy())
                         actionsListEpisode[1].append(action['angle'].numpy())
+                        distAgent[agent.id].append(agent.distfromAgent(target))
                         if agent.id == 0:
                             px.append(agent.xPos)
                             py.append(agent.yPos)
                         if agent.id == 1:
                             pxt.append(agent.xPos)
                             pyt.append(agent.yPos)
-                        pxd.append(duplicateAgent.xPos)
-                        pyd.append(duplicateAgent.yPos)
+                        if duplicateAgent.checkArrival() and not agent.outofBound():
+                            duplicateAgent.directMove(deltaT)
+                            pxd.append(duplicateAgent.xPos)
+                            pyd.append(duplicateAgent.yPos)
                         if maxDistfromPathPerEpisode < agent.distfromPathLine():
                             maxDistfromPathPerEpisode = agent.distfromPathLine()
                         if maxDistfromPath < agent.distfromPathLine():
                             maxDistfromPath = agent.distfromPathLine()
-                        if score < -20000:
-                            breakEpisode = True
-                            print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
-                            break
-                        # print("#####################\tAfter Manuover\t ######################")
-                        # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
-                        #     ,duplicateAgent.xPos: {duplicateAgent.xPos} , duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
-                        # print(f"Inside if : agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
-                    elif agent.distfromPathLine() > 1:
-                        # print(f"inside if of agent.distfromPathLine() {agent.distfromPathLine()}")
-                        duplicateAgent.directMove(deltaT)
-                        # print(f"agentID: {agent.id}, agentspeedx: {agent.speed['vx']}, agentspeedy: {agent.speed['vy']}, agentaccelx: {agent.accel['ax']}, agentaccely: {agent.accel['ay']}")
+
+                    elif agent.distfromPathLine() > 0.00001:
                         # action = agent.choose_action(observation)
                         action = agent.choose_action_categorical(observation)
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver, rewardsList)
                         observation_ = [ob/x for ob in observation_]
                         score += reward
-                        # print(f"reward: {reward}, score: {score}")
                         totalScore.append(score)
                         episodeScore.append(score)
                         # agent.learn(observation, reward, observation_, False)
                         agent.learnCategorical(observation, reward, observation_, False)
                         observation = observation_
+                        
                         actionsListEpisode[0].append(action['accel'].numpy())
                         actionsListEpisode[1].append(action['angle'].numpy())
-                        px.append(agent.xPos)
-                        py.append(agent.yPos)
-                        pxd.append(duplicateAgent.xPos)
-                        pyd.append(duplicateAgent.yPos)
+                        distAgent[agent.id].append(agent.distfromAgent(target))
+                        if agent.id == 0:
+                            px.append(agent.xPos)
+                            py.append(agent.yPos)
+                        if agent.id == 1:
+                            pxt.append(agent.xPos)
+                            pyt.append(agent.yPos)
+                        if duplicateAgent.checkArrival() and not agent.outofBound():
+                            duplicateAgent.directMove(deltaT)
+                            pxd.append(duplicateAgent.xPos)
+                            pyd.append(duplicateAgent.yPos)
                         if maxDistfromPathPerEpisode < agent.distfromPathLine():
                             maxDistfromPathPerEpisode = agent.distfromPathLine()
                         if maxDistfromPath < agent.distfromPathLine():
                             maxDistfromPath = agent.distfromPathLine()
-                        if score < -20000:
-                            breakEpisode = True
-                            print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
-                            break
+
                     else:
-                        # print(f"inside else of agent.distfromPathLine() {agent.distfromPathLine()}")
-                        duplicateAgent.directMove(deltaT)
                         ismanouver = False
                         action = None
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver, rewardsList)
                         observation_ = [ob/x for ob in observation_]
                         score += reward
                         observation = observation_
-                        px.append(agent.xPos)
-                        py.append(agent.yPos)
-                        pxd.append(duplicateAgent.xPos)
-                        pyd.append(duplicateAgent.yPos)
-                        if score < -20000:
-                            breakEpisode = True
-                            print("\n*#*#*#*#*#\nEpisode Breaked\n*#*#*#*#*#\n")
-                            break
 
-                        # print(f"inside else: agent ID: {agent.id}, reward: {reward}, stepCounter {stepCounter}, {all(agent.sensor(agentList, ismanouver))}")
-                        # px.append(agent.xPos)
-                        # py.append(agent.yPos)
-                        # print(f"\n\nagent.xPos: {agent.xPos} , agent.yPos {agent.xPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
-                            # ,duplicateAgent.xPos: {duplicateAgent.xPos} , print(duplicateAgent.yPos: {duplicateAgent.yPos}, duplicateAgent.speed: {duplicateAgent.speed}, duplicateAgent.accel: {duplicateAgent.accel}\n")
+                        distAgent[agent.id].append(agent.distfromAgent(target))
+                        if agent.id == 0:
+                            px.append(agent.xPos)
+                            py.append(agent.yPos)
+                        if agent.id == 1:
+                            pxt.append(agent.xPos)
+                            pyt.append(agent.yPos)
+                        if duplicateAgent.checkArrival() and not agent.outofBound():
+                            duplicateAgent.directMove(deltaT)
+                            pxd.append(duplicateAgent.xPos)
+                            pyd.append(duplicateAgent.yPos)
+                            
                 else:
                     done[agent.id] = True
             
