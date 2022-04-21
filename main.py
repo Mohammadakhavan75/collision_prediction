@@ -101,15 +101,15 @@ if __name__ == '__main__':
 
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
-                    if agent.id == 1:
-                        action = None
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
-                        observation = [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']]
-                        observation_ = [ob/x for ob in observation_]
-                        observation = [ob/x for ob in observation]
-                        pxt.append(agent.xPos)
-                        pyt.append(agent.yPos)
-                        continue
+                    # if agent.id == 1:
+                    #     action = None
+                    #     observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
+                    #     observation = [agentList[0].xPos, agentList[0].yPos, agentList[0].speed['vx'], agentList[0].speed['vy'], agentList[0].accel['ax'], agentList[0].accel['ay'], agentList[1].xPos, agentList[1].yPos, agentList[1].speed['vx'], agentList[1].speed['vy'], agentList[1].accel['ax'], agentList[1].accel['ay']]
+                    #     observation_ = [ob/x for ob in observation_]
+                    #     observation = [ob/x for ob in observation]
+                    #     pxt.append(agent.xPos)
+                    #     pyt.append(agent.yPos)
+                    #     continue
                     if all(agent.sensor(agentList, ismanouver)):
                         # print("\n\n$$$$$$$$$$$$$$$$$$$$\tBefore Manuover\t $$$$$$$$$$$$$$$$$$$$")
                         # print(f"agent.xPos: {agent.xPos} , agent.yPos {agent.yPos}, agent.speed: {agent.speed}, agent.accel: {agent.accel}\
@@ -132,8 +132,12 @@ if __name__ == '__main__':
                         observation = observation_
                         actionsListEpisode[0].append(action['accel'].numpy())
                         actionsListEpisode[1].append(action['angle'].numpy())
-                        px.append(agent.xPos)
-                        py.append(agent.yPos)
+                        if agent.id == 0:
+                            px.append(agent.xPos)
+                            py.append(agent.yPos)
+                        if agent.id == 1:
+                            pxt.append(agent.xPos)
+                            pyt.append(agent.yPos)
                         pxd.append(duplicateAgent.xPos)
                         pyd.append(duplicateAgent.yPos)
                         if maxDistfromPathPerEpisode < agent.distfromPathLine():
@@ -222,57 +226,57 @@ if __name__ == '__main__':
 
             plt.figure(figsize=(16, 10))
             plt.plot(score_history)
-            plt.savefig(logPath + "score_history" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_score_history" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
             plt.plot(total_avg_score)
-            plt.savefig(logPath + "total_avg_score" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_total_avg_score" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
             plt.plot(totalScore)
-            plt.savefig(logPath + "totalScore" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_totalScore" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
             plt.plot(episodeScore)
-            plt.savefig(logPath + "episodeScore" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_episodeScore" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
             plt.plot(mean_episode_score)
-            plt.savefig(logPath + "mean_episode_score" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_mean_episode_score" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
             plt.plot(px, py)
-            plt.savefig(logPath + "pathAgent" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_pathAgent" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
             plt.plot(pxt, pyt)
-            plt.savefig(logPath + "pathDuplicate" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_pathDuplicate" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
             plt.plot(px, py, color='b')
             plt.plot(pxd, pyd, color='r')
             plt.plot(pxt, pyt, color='k')
-            plt.savefig(logPath + "pathCombine" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_pathCombine" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
             plt.plot(actionsListEpisode[0], color='b')
-            plt.savefig(logPath + "actionAccel" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_actionAccel" + str(i) + "_" + str() + ".png")
             plt.close()
 
             plt.figure(figsize=(16, 10))
             plt.plot(actionsListEpisode[1], color='b')
-            plt.savefig(logPath + "actionAngle" + str(i) + "_" + str() + ".png")
+            plt.savefig(logPath + "end_episode_actionAngle" + str(i) + "_" + str() + ".png")
             plt.close()
 
-            with open(logPath + "actionList" + str(i) + ".txt", 'w') as f:
+            with open(logPath + "end_episode_actionList" + str(i) + ".txt", 'w') as f:
                 for aa in actionsListEpisode:
                     f.write("%s\n" % aa)
 
