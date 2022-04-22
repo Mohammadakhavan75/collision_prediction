@@ -274,7 +274,7 @@ if __name__ == '__main__':
 
             print("score is: ", score, "avg_score:", avg_score)
             print(f"maxDistfromPath: {maxDistfromPath}, maxDistfromPathPerEpisode: {maxDistfromPathPerEpisode}")
-            print(f"max Colision {np.sum(info[4])}")
+            print(f"max Colision {np.sum(info[0][4])}")
 
             plt.figure(figsize=(16, 10))
             plt.plot(score_history)
