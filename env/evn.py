@@ -14,7 +14,7 @@ class Env():
         self.accelerationBoundryCat = [-0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4]
         self.angleBoundryCat = [-0.05235987755982989 + i * 0.013089969389957472 for i in range(9)]
         self.actionSpaceCat = {'changedAccel': self.accelerationBoundryCat, 'changedAngle': self.angleBoundryCat}
-        # self.rewardsList = [[],[],[],[]]
+        self.rewardsList = [[[],[],[],[],[]], [[],[],[],[],[]]]
 
     
     def initAgent(self, agnetNum=2, random=True):
