@@ -31,7 +31,7 @@ if __name__ == '__main__':
     world = Env(x, y)
     # agentList = world.initAgent(agnetNumber)
     agentList = world.initAgent(random=False)
-    duplicateAgent = agentList[2]
+    # duplicateAgent = agentList[2]
     _ = agentList.pop(2)
     # world.initRender()
     episodes=1000
@@ -44,7 +44,7 @@ if __name__ == '__main__':
         done=[False for _ in agentList]
         observation, agentList = world.reset(agentList)
         observation = [ob/x for ob in observation]
-        duplicateAgent.resetAttr()
+        # duplicateAgent.resetAttr()
         episodeScore = []
         actionsListEpisode = [[],[]]
         outputofModel = []
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         manouverStarted = False
         for ag in agentList:
             print(ag.getAttr())
-        print(duplicateAgent.getAttr())
+        # print(duplicateAgent.getAttr())
         while not all(done) and not breakEpisode:
             counter += 1
             stepCounter += 1
@@ -65,7 +65,7 @@ if __name__ == '__main__':
                 print(f"stepCounter is: {stepCounter} , episode is : {i}")
                 print("Age attribute: ", agentList[0].getAttr())
                 print("Tar attribute: ", agentList[1].getAttr())
-                print("Dup attribute: ", duplicateAgent.getAttr())
+                # print("Dup attribute: ", duplicateAgent.getAttr())
                 print(f"score: {score}")
                 print(f"maxDistfromPath: {maxDistfromPath}, maxDistfromPathPerEpisode: {maxDistfromPathPerEpisode}")
                 logPath = f"./Log/{dtLogger}/episode_{i}/"
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
                 plt.figure(figsize=(16, 10))
                 plt.plot(px, py, color='b')
-                plt.plot(pxd, pyd, color='r')
+                # plt.plot(pxd, pyd, color='r')
                 plt.plot(pxt, pyt, color='k')
                 plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close("all")
@@ -85,15 +85,15 @@ if __name__ == '__main__':
                 # plt.savefig(logPath + "pathlast_100_Combine" + str(i) + "_" + str(stepCounter) + ".png")
                 # plt.close("all")
                 
-                plt.figure(figsize=(16, 10))
-                plt.plot(actionsListEpisode[0], color='b')
-                plt.savefig(logPath + "actionAccel_100_" + str(i) + "_" + str(stepCounter) + ".png")
-                plt.close("all")
+                # plt.figure(figsize=(16, 10))
+                # plt.plot(actionsListEpisode[0], color='b')
+                # plt.savefig(logPath + "actionAccel_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                # plt.close("all")
 
-                plt.figure(figsize=(16, 10))
-                plt.plot(actionsListEpisode[1], color='b')
-                plt.savefig(logPath + "actionAngle_100_" + str(i) + "_" + str(stepCounter) + ".png")
-                plt.close("all")
+                # plt.figure(figsize=(16, 10))
+                # plt.plot(actionsListEpisode[1], color='b')
+                # plt.savefig(logPath + "actionAngle_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                # plt.close("all")
  
                 plt.figure(figsize=(16, 10))
                 plt.plot(distAgent[0], color='b')
@@ -117,7 +117,7 @@ if __name__ == '__main__':
                 # plt.close("all")
 
             for agent in agentList:
-                if not agent.checkArrival() and not agent.outofBound():
+                if not agent.checkArrival():
                     if agent.id == agentList[0]:
                         target = agentList[1]
                     else:
@@ -154,10 +154,10 @@ if __name__ == '__main__':
                         if agent.id == 1:
                             pxt.append(agent.xPos)
                             pyt.append(agent.yPos)
-                        if duplicateAgent.checkArrival() and not agent.outofBound():
-                            duplicateAgent.directMove(deltaT)
-                            pxd.append(duplicateAgent.xPos)
-                            pyd.append(duplicateAgent.yPos)
+                        # if duplicateAgent.checkArrival() and not agent.outofBound():
+                        #     duplicateAgent.directMove(deltaT)
+                        #     pxd.append(duplicateAgent.xPos)
+                        #     pyd.append(duplicateAgent.yPos)
                         if maxDistfromPathPerEpisode < agent.distfromPathLine():
                             maxDistfromPathPerEpisode = agent.distfromPathLine()
                         if maxDistfromPath < agent.distfromPathLine():
@@ -184,10 +184,10 @@ if __name__ == '__main__':
                         if agent.id == 1:
                             pxt.append(agent.xPos)
                             pyt.append(agent.yPos)
-                        if duplicateAgent.checkArrival() and not agent.outofBound():
-                            duplicateAgent.directMove(deltaT)
-                            pxd.append(duplicateAgent.xPos)
-                            pyd.append(duplicateAgent.yPos)
+                        # if duplicateAgent.checkArrival() and not agent.outofBound():
+                        #     duplicateAgent.directMove(deltaT)
+                        #     pxd.append(duplicateAgent.xPos)
+                        #     pyd.append(duplicateAgent.yPos)
                         if maxDistfromPathPerEpisode < agent.distfromPathLine():
                             maxDistfromPathPerEpisode = agent.distfromPathLine()
                         if maxDistfromPath < agent.distfromPathLine():
@@ -208,13 +208,17 @@ if __name__ == '__main__':
                         if agent.id == 1:
                             pxt.append(agent.xPos)
                             pyt.append(agent.yPos)
-                        if duplicateAgent.checkArrival() and not agent.outofBound():
-                            duplicateAgent.directMove(deltaT)
-                            pxd.append(duplicateAgent.xPos)
-                            pyd.append(duplicateAgent.yPos)
+                        # if duplicateAgent.checkArrival() and not agent.outofBound():
+                        #     duplicateAgent.directMove(deltaT)
+                        #     pxd.append(duplicateAgent.xPos)
+                        #     pyd.append(duplicateAgent.yPos)
                             
                 else:
                     done[agent.id] = True
+
+                if agent.outofBound():
+                    breakEpisode = True
+                    print("agent goes out of bound!")
             
         print("episode %f finished!", i)
 
@@ -258,32 +262,32 @@ if __name__ == '__main__':
             plt.savefig(logPath + "end_episode_mean_episode_score_" + str(i) + ".png")
             plt.close("all")
 
-            plt.figure(figsize=(16, 10))
-            plt.plot(px, py)
-            plt.savefig(logPath + "end_episode_pathAgent_" + str(i) + ".png")
-            plt.close("all")
+            # plt.figure(figsize=(16, 10))
+            # plt.plot(px, py)
+            # plt.savefig(logPath + "end_episode_pathAgent_" + str(i) + ".png")
+            # plt.close("all")
 
-            plt.figure(figsize=(16, 10))
-            plt.plot(pxt, pyt)
-            plt.savefig(logPath + "end_episode_pathDuplicate_" + str(i) + ".png")
-            plt.close("all")
+            # plt.figure(figsize=(16, 10))
+            # plt.plot(pxt, pyt)
+            # plt.savefig(logPath + "end_episode_pathDuplicate_" + str(i) + ".png")
+            # plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(px, py, color='b')
-            plt.plot(pxd, pyd, color='r')
+            # plt.plot(pxd, pyd, color='r')
             plt.plot(pxt, pyt, color='k')
             plt.savefig(logPath + "end_episode_pathCombine_" + str(i) + ".png")
             plt.close("all")
 
-            plt.figure(figsize=(16, 10))
-            plt.plot(actionsListEpisode[0], color='b')
-            plt.savefig(logPath + "end_episode_actionAccel_" + str(i) + ".png")
-            plt.close("all")
+            # plt.figure(figsize=(16, 10))
+            # plt.plot(actionsListEpisode[0], color='b')
+            # plt.savefig(logPath + "end_episode_actionAccel_" + str(i) + ".png")
+            # plt.close("all")
 
-            plt.figure(figsize=(16, 10))
-            plt.plot(actionsListEpisode[1], color='b')
-            plt.savefig(logPath + "end_episode_actionAngle_" + str(i) + ".png")
-            plt.close("all")
+            # plt.figure(figsize=(16, 10))
+            # plt.plot(actionsListEpisode[1], color='b')
+            # plt.savefig(logPath + "end_episode_actionAngle_" + str(i) + ".png")
+            # plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(distAgent[0], color='b')
