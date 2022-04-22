@@ -49,7 +49,7 @@ if __name__ == '__main__':
         actionsListEpisode = [[],[]]
         outputofModel = []
         distAgent = [[],[]]
-        rewardsList = [[],[],[],[]]
+        rewardsList = [[[],[],[],[],[]], [[],[],[],[],[]]]
         score = [0,0]
         stepCounter = 0
         maxDistfromPathPerEpisode = 0
@@ -117,12 +117,29 @@ if __name__ == '__main__':
 
 
                 plt.figure(figsize=(16, 10))
-                plt.plot(info[0], color='b')
-                plt.plot(info[1], color='r')
-                plt.plot(info[2], color='g')
-                plt.plot(info[3], color='y')
-                plt.savefig(logPath + "RewardsList_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.plot(info[0][0], color='b')
+                plt.plot(info[0][1], color='r')
+                plt.savefig(logPath + "R_Forward_FromLine_Agent_0_100_" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close("all")
+
+                plt.figure(figsize=(16, 10))
+                plt.plot(info[1][0], color='b')
+                plt.plot(info[1][1], color='r')
+                plt.savefig(logPath + "R_Forward_FromLine_Agent_1_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
+
+                plt.figure(figsize=(16, 10))
+                plt.plot(info[0][0], color='b')
+                plt.plot(info[0][1], color='r')
+                plt.savefig(logPath + "R_Left_Agent_0_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
+
+                plt.figure(figsize=(16, 10))
+                plt.plot(info[1][0], color='b')
+                plt.plot(info[1][1], color='r')
+                plt.savefig(logPath + "R_Left_Agent_1_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
+
                 # plt.figure(figsize=(16, 10))
                 # plt.plot(px[-100:], py[-100:], color='b')
                 # plt.plot(pxd[-100:], pyd[-100:], color='r')
@@ -237,7 +254,7 @@ if __name__ == '__main__':
                     breakEpisode = True
                     print("agent goes out of bound!")
 
-                if score[j] < -200000:
+                if score[j] < -2000000:
                     print("agent score goes lower than -20000")
                     breakEpisode = True
             
@@ -322,6 +339,30 @@ if __name__ == '__main__':
             plt.plot(info[2], color='g')
             plt.plot(info[3], color='y')
             plt.savefig(logPath + "end_episode_RewardsList_" + str(i) + ".png")
+            plt.close("all")
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(info[0][0], color='b')
+            plt.plot(info[0][1], color='r')
+            plt.savefig(logPath + "end_episode_R_Forward_FromLine_Agent_0_100_" + str(i) + "_" + str(stepCounter) + ".png")
+            plt.close("all")
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(info[1][0], color='b')
+            plt.plot(info[1][1], color='r')
+            plt.savefig(logPath + "end_episode_R_Forward_FromLine_Agent_1_100_" + str(i) + "_" + str(stepCounter) + ".png")
+            plt.close("all")
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(info[0][0], color='b')
+            plt.plot(info[0][1], color='r')
+            plt.savefig(logPath + "end_episode_R_Left_Agent_0_100_" + str(i) + "_" + str(stepCounter) + ".png")
+            plt.close("all")
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(info[1][0], color='b')
+            plt.plot(info[1][1], color='r')
+            plt.savefig(logPath + "end_episode_R_Left_Agent_1_100_" + str(i) + "_" + str(stepCounter) + ".png")
             plt.close("all")
 
             with open(logPath + "end_episode_actionList" + str(i) + ".txt", 'w') as f:
