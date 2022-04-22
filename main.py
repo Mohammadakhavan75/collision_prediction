@@ -9,8 +9,8 @@ import pathlib
 import numpy
 
 if __name__ == '__main__':
-    x = 58000 * 1.3
-    y = 58000 * 1.3
+    x = 58000 * 1.62 # 1.3
+    y = 58000 * 1.62
     deltaT = 0.05
     arrival = 0
     agnetNumber = 2
@@ -76,30 +76,30 @@ if __name__ == '__main__':
                 plt.plot(pxd, pyd, color='r')
                 plt.plot(pxt, pyt, color='k')
                 plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png")
-                plt.close()
+                plt.close("all")
 
                 # plt.figure(figsize=(16, 10))
                 # plt.plot(px[-100:], py[-100:], color='b')
                 # plt.plot(pxd[-100:], pyd[-100:], color='r')
                 # # plt.plot(pxt[-100:], pyt[-100:], color='k')
                 # plt.savefig(logPath + "pathlast_100_Combine" + str(i) + "_" + str(stepCounter) + ".png")
-                # plt.close()
+                # plt.close("all")
                 
                 plt.figure(figsize=(16, 10))
                 plt.plot(actionsListEpisode[0], color='b')
-                plt.savefig(logPath + "actionAccel_100_" + str(i) + "_" + str() + ".png")
-                plt.close()
+                plt.savefig(logPath + "actionAccel_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
 
                 plt.figure(figsize=(16, 10))
                 plt.plot(actionsListEpisode[1], color='b')
-                plt.savefig(logPath + "actionAngle_100_" + str(i) + "_" + str() + ".png")
-                plt.close()
+                plt.savefig(logPath + "actionAngle_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
  
                 plt.figure(figsize=(16, 10))
                 plt.plot(distAgent[0], color='b')
                 plt.plot(distAgent[1], color='r')
-                plt.savefig(logPath + "distAgent_100_" + str(i) + "_" + str() + ".png")
-                plt.close()
+                plt.savefig(logPath + "distAgent_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
 
 
                 plt.figure(figsize=(16, 10))
@@ -107,14 +107,14 @@ if __name__ == '__main__':
                 plt.plot(info[1], color='r')
                 plt.plot(info[2], color='g')
                 plt.plot(info[3], color='y')
-                plt.savefig(logPath + "RewardsList_100_" + str(i) + "_" + str() + ".png")
-                plt.close()
+                plt.savefig(logPath + "RewardsList_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
                 # plt.figure(figsize=(16, 10))
                 # plt.plot(px[-100:], py[-100:], color='b')
                 # plt.plot(pxd[-100:], pyd[-100:], color='r')
                 # plt.plot(pxt[-100:], pyt[-100:], color='k')
                 # plt.savefig(logPath + "pathlast1000Combine" + str(i) + "_" + str(stepCounter) + ".png")
-                # plt.close()
+                # plt.close("all")
 
             for agent in agentList:
                 if not agent.checkArrival() and not agent.outofBound():
@@ -235,55 +235,69 @@ if __name__ == '__main__':
 
             plt.figure(figsize=(16, 10))
             plt.plot(score_history)
-            plt.savefig(logPath + "end_episode_score_history" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_score_history_" + str(i) + ".png")
+            plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(total_avg_score)
-            plt.savefig(logPath + "end_episode_total_avg_score" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_total_avg_score_" + str(i) + ".png")
+            plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(totalScore)
-            plt.savefig(logPath + "end_episode_totalScore" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_totalScore_" + str(i) + ".png")
+            plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(episodeScore)
-            plt.savefig(logPath + "end_episode_episodeScore" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_episodeScore_" + str(i) + ".png")
+            plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(mean_episode_score)
-            plt.savefig(logPath + "end_episode_mean_episode_score" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_mean_episode_score_" + str(i) + ".png")
+            plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(px, py)
-            plt.savefig(logPath + "end_episode_pathAgent" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_pathAgent_" + str(i) + ".png")
+            plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(pxt, pyt)
-            plt.savefig(logPath + "end_episode_pathDuplicate" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_pathDuplicate_" + str(i) + ".png")
+            plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(px, py, color='b')
             plt.plot(pxd, pyd, color='r')
             plt.plot(pxt, pyt, color='k')
-            plt.savefig(logPath + "end_episode_pathCombine" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_pathCombine_" + str(i) + ".png")
+            plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(actionsListEpisode[0], color='b')
-            plt.savefig(logPath + "end_episode_actionAccel" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_actionAccel_" + str(i) + ".png")
+            plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.plot(actionsListEpisode[1], color='b')
-            plt.savefig(logPath + "end_episode_actionAngle" + str(i) + "_" + str() + ".png")
-            plt.close()
+            plt.savefig(logPath + "end_episode_actionAngle_" + str(i) + ".png")
+            plt.close("all")
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(distAgent[0], color='b')
+            plt.plot(distAgent[1], color='r')
+            plt.savefig(logPath + "end_episode_distAgent_" + str(i) + ".png")
+            plt.close("all")
+
+            plt.figure(figsize=(16, 10))
+            plt.plot(info[0], color='b')
+            plt.plot(info[1], color='r')
+            plt.plot(info[2], color='g')
+            plt.plot(info[3], color='y')
+            plt.savefig(logPath + "end_episode_RewardsList_" + str(i) + ".png")
+            plt.close("all")
 
             with open(logPath + "end_episode_actionList" + str(i) + ".txt", 'w') as f:
                 for aa in actionsListEpisode:

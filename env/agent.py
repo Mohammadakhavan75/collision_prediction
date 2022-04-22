@@ -28,7 +28,7 @@ class Agent():
         self.angle = 0
         self.firstAngle = 0
         self.nonVectoralAccel = 0
-        self.timetoManouver = 190 # 300
+        self.timetoManouver = 300 # 300 # 190
         self.logProbs = 0
         self.lastDistance = 0
            
