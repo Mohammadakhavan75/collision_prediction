@@ -237,7 +237,7 @@ if __name__ == '__main__':
                     breakEpisode = True
                     print("agent goes out of bound!")
 
-                if score[j] < -20000:
+                if score[j] < -200000:
                     print("agent score goes lower than -20000")
                     breakEpisode = True
             
