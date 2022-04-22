@@ -11,7 +11,7 @@ import numpy
 if __name__ == '__main__':
     x = 58000 * 1.62 # 1.3
     y = 58000 * 1.62
-    deltaT = 0.05
+    deltaT = 0.1
     arrival = 0
     agnetNumber = 2
     counter = 0
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         outputofModel = []
         distAgent = [[],[]]
         rewardsList = [[],[],[],[]]
-        score = 0
+        score = [0,0]
         stepCounter = 0
         maxDistfromPathPerEpisode = 0
         breakEpisode = False
@@ -76,6 +76,20 @@ if __name__ == '__main__':
                 # plt.plot(pxd, pyd, color='r')
                 plt.plot(pxt, pyt, color='k')
                 plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
+
+                plt.figure(figsize=(16, 10))
+                plt.plot(px, py, color='b')
+                # plt.plot(pxd, pyd, color='r')
+                # plt.plot(pxt, pyt, color='k')
+                plt.savefig(logPath + "pathAgent1" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
+
+                plt.figure(figsize=(16, 10))
+                plt.plot(px, py, color='k')
+                # plt.plot(pxd, pyd, color='r')
+                # plt.plot(pxt, pyt, color='k')
+                plt.savefig(logPath + "pathAgent2" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close("all")
 
                 # plt.figure(figsize=(16, 10))
@@ -116,12 +130,14 @@ if __name__ == '__main__':
                 # plt.savefig(logPath + "pathlast1000Combine" + str(i) + "_" + str(stepCounter) + ".png")
                 # plt.close("all")
 
-            for agent in agentList:
+            for j, agent in enumerate(agentList):
                 if not agent.checkArrival():
-                    if agent.id == agentList[0]:
+                    if agent.id == agentList[0].id:
                         target = agentList[1]
                     else:
                         target = agentList[0]
+
+                    # print(f"agent {agent.id}, target {target.id}")
                     # if agent.id == 1:
                     #     action = None
                     #     observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver)
@@ -136,11 +152,11 @@ if __name__ == '__main__':
                         manouverStarted = True
                         # action = agent.choose_action(observation)
                         action = agent.choose_action_categorical(observation)
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver, rewardsList)
+                        observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList)
                         observation_ = [ob/x for ob in observation_]
-                        score += reward
-                        totalScore.append(score)
-                        episodeScore.append(score)
+                        score[j] += reward
+                        totalScore.append(score[j])
+                        episodeScore.append(score[j])
                         # agent.learn(observation, reward, observation_, False)
                         agent.learnCategorical(observation, reward, observation_, False)
                         observation = observation_
@@ -166,11 +182,11 @@ if __name__ == '__main__':
                     elif agent.distfromPathLine() > 0.00001:
                         # action = agent.choose_action(observation)
                         action = agent.choose_action_categorical(observation)
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver, rewardsList)
+                        observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList)
                         observation_ = [ob/x for ob in observation_]
-                        score += reward
-                        totalScore.append(score)
-                        episodeScore.append(score)
+                        score[j] += reward
+                        totalScore.append(score[j])
+                        episodeScore.append(score[j])
                         # agent.learn(observation, reward, observation_, False)
                         agent.learnCategorical(observation, reward, observation_, False)
                         observation = observation_
@@ -196,9 +212,9 @@ if __name__ == '__main__':
                     else:
                         ismanouver = False
                         action = None
-                        observation_, reward, ـ, info = world.step(action, agent, agentList, deltaT, ismanouver, rewardsList)
+                        observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList)
                         observation_ = [ob/x for ob in observation_]
-                        score += reward
+                        score[j] += reward
                         observation = observation_
 
                         distAgent[agent.id].append(agent.distfromAgent(target))
@@ -208,6 +224,7 @@ if __name__ == '__main__':
                         if agent.id == 1:
                             pxt.append(agent.xPos)
                             pyt.append(agent.yPos)
+
                         # if duplicateAgent.checkArrival() and not agent.outofBound():
                         #     duplicateAgent.directMove(deltaT)
                         #     pxd.append(duplicateAgent.xPos)
@@ -219,16 +236,20 @@ if __name__ == '__main__':
                 if agent.outofBound():
                     breakEpisode = True
                     print("agent goes out of bound!")
+
+                if score[j] < -20000:
+                    print("agent score goes lower than -20000")
+                    breakEpisode = True
             
         print("episode %f finished!", i)
 
-        score_history.append(score)
+        score_history.append(score[j])
         avg_score = np.mean(score_history[-100:])
         total_avg_score.append(avg_score)
         mean_episode_score.append(np.mean(episodeScore))
         if avg_score > best_score:
             best_score = avg_score
-            agent.save_models()
+            # agent.save_models()
 
         if LoggerOn:
             logPath = f"./Log/{dtLogger}/episode_{i}/"

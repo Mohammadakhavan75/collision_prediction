@@ -363,21 +363,25 @@ class Agent():
         self.updateSpeed(angle, nonVectoralSpeed)
         
     def angleFromPathLine(self):
-        distance = [self.xDest - self.xPos, self.yDest - self.yPos]
-        norm = np.sqrt(distance[0] ** 2 + distance[1] ** 2)
-        direction = [distance[0] / norm, distance[1] / norm]
-        bulletVectorAgentPoisionLine = [direction[0] * np.sqrt(2), direction[1] * np.sqrt(2)]
+        v1 = [self.xPos - self.firstPosX, self.yPos - self.firstPosX]
+        # distance = [self.xPos - self.firstPosX, self.yPos - self.firstPosX]
+        # norm = np.sqrt(distance[0] ** 2 + distance[1] ** 2)
+        # direction = [distance[0] / norm, distance[1] / norm]
+        # bulletVectorAgentPoisionLine = [direction[0] * np.sqrt(2), direction[1] * np.sqrt(2)]
 
-        distance = [self.xDest - self.firstPosX, self.yDest - self.firstPosY]
-        norm = np.sqrt(distance[0] ** 2 + distance[1] ** 2)
-        direction = [distance[0] / norm, distance[1] / norm]
-        bulletVectorAgentDirectLine = [direction[0] * np.sqrt(2), direction[1] * np.sqrt(2)]
+        v2 = [self.xDest - self.firstPosX, self.yDest - self.firstPosY]
+        # distance = [self.xDest - self.firstPosX, self.yDest - self.firstPosY]
+        # norm = np.sqrt(distance[0] ** 2 + distance[1] ** 2)
+        # direction = [distance[0] / norm, distance[1] / norm]
+        # bulletVectorAgentDirectLine = [direction[0] * np.sqrt(2), direction[1] * np.sqrt(2)]
 
-        v1_u = bulletVectorAgentPoisionLine / np.linalg.norm(bulletVectorAgentPoisionLine)
-        v2_u = bulletVectorAgentDirectLine / np.linalg.norm(bulletVectorAgentDirectLine)
-        angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+        # v1_u = bulletVectorAgentPoisionLine / np.linalg.norm(bulletVectorAgentPoisionLine)
+        # v2_u = bulletVectorAgentDirectLine / np.linalg.norm(bulletVectorAgentDirectLine)
+        # angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
-        return angle
+        al  = np.cross(v2, v1)
+
+        return al > 0
 
     def checkLeftofLine(self):
         __angle = np.dot(list(self.speed.values()), list(self.firstSpeed.values())) / (np.linalg.norm(list(self.speed.values())) * np.linalg.norm(list(self.firstSpeed.values())))
