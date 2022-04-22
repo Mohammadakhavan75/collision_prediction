@@ -82,7 +82,6 @@ class Agent():
             for (grad, var) in zip(
             gradient, self.actor_critic.trainable_variables) if grad is not None])
 
-
     def save_models(self):
         print('... saving models ...')
         self.actor_critic.save_weights(self.actor_critic.checkpoint_file)
@@ -363,7 +362,7 @@ class Agent():
         self.updateSpeed(angle, nonVectoralSpeed)
         
     def angleFromPathLine(self):
-        v1 = [self.xPos - self.firstPosX, self.yPos - self.firstPosX]
+        v1 = [self.xPos - self.firstPosX, self.yPos - self.firstPosY]
         # distance = [self.xPos - self.firstPosX, self.yPos - self.firstPosX]
         # norm = np.sqrt(distance[0] ** 2 + distance[1] ** 2)
         # direction = [distance[0] / norm, distance[1] / norm]
@@ -380,7 +379,7 @@ class Agent():
         # angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
         al  = np.cross(v2, v1)
-
+        print(f"agent.id: {self.id}, v1 {v1}, v2: {v2}, al: {al}")
         return al > 0
 
     def checkLeftofLine(self):

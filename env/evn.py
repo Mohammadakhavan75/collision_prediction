@@ -107,6 +107,7 @@ class Env():
             returnReward += rewardFinal
             return agent.reward
         elif lastDist <= agent.distfromAgent(target):
+        # else:
             # print(f"lastDist < agent.distfromAgent(target) {lastDist < agent.distfromAgent(target)}, lastDist: {lastDist},  agent.distfromAgent(target), {agent.distfromAgent(target)}")
             rr = np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)  - np.sqrt((agent.xPos - agent.xDest) ** 2 + (agent.yPos - agent.yDest) ** 2)
             rere = 1/(1 + np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)) * rr
@@ -118,6 +119,7 @@ class Env():
             # 2- Heading error and Cross Error reward
         # if not agent.checkArrival() and not ismanouver:
         if not agent.checkArrival() and lastDist <= agent.distfromAgent(target):
+        # if not agent.checkArrival():
             # print("reward Heading") 
 
             rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
