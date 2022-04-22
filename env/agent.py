@@ -379,7 +379,7 @@ class Agent():
         # angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
         al  = np.cross(v2, v1)
-        print(f"agent.id: {self.id}, v1 {v1}, v2: {v2}, al: {al}")
+        # print(f"agent.id: {self.id}, v1 {v1}, v2: {v2}, al: {al}")
         return al > 0
 
     def checkLeftofLine(self):
