@@ -2,13 +2,19 @@ from math import radians
 import numpy as np
 from sympy.solvers import solve
 from sympy import Symbol
-from .network import ActorCriticNetwork
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow_probability as tfp
 import copy
+
+import tensorflow.keras as keras
+from .memory import PPOMemory
+from .networks import ActorNetwork, CriticNetwork
+
 class Agent():
-    def __init__(self, acceptableDist=9260):
+    def __init__(self, n_actions, gamma=0.99, alpha=0.0003,
+                 gae_lambda=0.95, policy_clip=0.2, batch_size=64,
+                 n_epochs=10, chkpt_dir='models/', acceptableDist=9260):
         self.xPos = 0
         self.yPos = 0
         self.xbPos = 0
@@ -31,111 +37,123 @@ class Agent():
         self.timetoManouver = 300 # 300 # 190
         self.logProbs = 0
         self.lastDistance = 0
-           
-    def initModelCategorical(self, n_actions=18, learning_rate=0.001, gamma=0.99):
-        tf.config.set_visible_devices([], 'GPU')
+
         self.gamma = gamma
-        self.n_actions = n_actions
-        self.action = None
-        self.action_space = [i for i in range(self.n_actions)]
+        self.policy_clip = policy_clip
+        self.n_epochs = n_epochs
+        self.gae_lambda = gae_lambda
+        self.chkpt_dir = chkpt_dir
 
-        self.actor_critic = ActorCriticNetwork(n_actions=n_actions)
-        self.actor_critic.compile(optimizer=Adam(learning_rate=learning_rate))
-
-    def choose_action_categorical(self, observation):
-        state = tf.convert_to_tensor([observation])
-        _, probs = self.actor_critic(state)
-
-        action_probabilitiesSpeed = tfp.distributions.Categorical(probs[0][:9])
-        action_probabilitiesAngle = tfp.distributions.Categorical(probs[0][9:])
-        actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
-        self.action = {'accel': actionSpeed, 'angle': actionAngle}
-
-        return self.action
-
-    def learnCategorical(self, state, reward, state_, done):
-        state = tf.convert_to_tensor([state], dtype=tf.float32)
-        state_ = tf.convert_to_tensor([state_], dtype=tf.float32)
-        reward = tf.convert_to_tensor(reward, dtype=tf.float32) # not fed to NN
-        with tf.GradientTape(persistent=True) as tape:
-            state_value, probs = self.actor_critic(state)
-            state_value_, _ = self.actor_critic(state_)
-            state_value = tf.squeeze(state_value)
-            state_value_ = tf.squeeze(state_value_)
-
-            # print(f"probs.numpy()[0]: {probs.numpy()[0]}")
-            action_probabilitiesAccel = tfp.distributions.Categorical(probs.numpy()[0][:9])
-            action_probabilitiesAngle = tfp.distributions.Categorical(probs.numpy()[0][9:])
-            log_prob_accel = action_probabilitiesAccel.log_prob(self.action['accel'])
-            log_prob_angle = action_probabilitiesAngle.log_prob(self.action['angle'])
-
-            delta = reward + self.gamma * state_value_ * (1 - int(done)) - state_value
-            actor_loss = -log_prob_accel * delta - log_prob_angle * delta
-            critic_loss = delta ** 2
-            total_loss = actor_loss + critic_loss
-            print(f"ID: {self.id}, reward: {reward}, state_value_: {state_value_}, state_value: {state_value}, log_prob_accel: {log_prob_accel}, log_prob_angle: {log_prob_angle}")
-            print(f"delta: {delta}, actor_loss: {actor_loss}, total_loss: {total_loss}\n")
-        gradient = tape.gradient(total_loss, self.actor_critic.trainable_variables)
-        self.actor_critic.optimizer.apply_gradients([
-            (grad, var) 
-            for (grad, var) in zip(
-            gradient, self.actor_critic.trainable_variables) if grad is not None])
+        self.actor = ActorNetwork(n_actions)
+        self.actor.compile(optimizer=Adam(learning_rate=alpha))
+        self.critic = CriticNetwork()
+        self.critic.compile(optimizer=Adam(learning_rate=alpha))
+        self.memory = PPOMemory(batch_size)
+           
+    def store_transition(self, state, action, probs, vals, reward, done):
+        self.memory.store_memory(state, action, probs, vals, reward, done)
 
     def save_models(self):
         print('... saving models ...')
-        self.actor_critic.save_weights(self.actor_critic.checkpoint_file)
+        self.actor.save(self.chkpt_dir + 'actor')
+        self.critic.save(self.chkpt_dir + 'critic')
 
     def load_models(self):
         print('... loading models ...')
-        self.actor_critic.load_weights(self.actor_critic.checkpoint_file)
+        self.actor = keras.models.load_model(self.chkpt_dir + 'actor')
+        self.critic = keras.models.load_model(self.chkpt_dir + 'critic')
 
-    def initModel(self, n_actions=4, learning_rate=0.001, gamma=0.99):
-        tf.config.set_visible_devices([], 'GPU')
-        self.gamma = gamma
-        self.n_actions = n_actions
-        self.action = None
-        self.action_space = [i for i in range(self.n_actions)]
+    # def choose_action(self, observation):
+    #     state = tf.convert_to_tensor([observation])
 
-        self.actor_critic = ActorCriticNetwork(n_actions=n_actions)
-        self.actor_critic.compile(optimizer=Adam(learning_rate=learning_rate))
+    #     probs = self.actor(state)
+    #     dist = tfp.distributions.Categorical(probs)
+    #     action = dist.sample()
+    #     log_prob = dist.log_prob(action)
+    #     value = self.critic(state)
+
+    #     action = action.numpy()[0]
+    #     value = value.numpy()[0]
+    #     log_prob = log_prob.numpy()[0]
+
+    #     return action, log_prob, value
+
 
     def choose_action(self, observation):
         state = tf.convert_to_tensor([observation])
-        _, probs = self.actor_critic(state)
-        action_probabilitiesSpeed = tfp.distributions.Normal(loc=probs.numpy()[0][0], scale=probs.numpy()[0][1])
-        action_probabilitiesAngle = tfp.distributions.Normal(loc=probs.numpy()[0][2], scale=probs.numpy()[0][3])
-        actionSpeed, actionAngle = action_probabilitiesSpeed.sample(), action_probabilitiesAngle.sample()
-        self.action = {'accel': actionSpeed, 'angle': actionAngle}
-        # print(probs.numpy())
-        return self.action
 
-    def learn(self, state, reward, state_, done):
-        state = tf.convert_to_tensor([state], dtype=tf.float32)
-        state_ = tf.convert_to_tensor([state_], dtype=tf.float32)
-        reward = tf.convert_to_tensor(reward, dtype=tf.float32) # not fed to NN
-        with tf.GradientTape(persistent=True) as tape:
-            state_value, probs = self.actor_critic(state)
-            state_value_, _ = self.actor_critic(state_)
-            state_value = tf.squeeze(state_value)
-            state_value_ = tf.squeeze(state_value_)
+        probs = self.actor(state)
+        dist_angle = tfp.distributions.Categorical(probs[0][:9])
+        dist_accel = tfp.distributions.Categorical(probs[0][9:])
+        action_accel = dist_accel.sample()
+        action_angle = dist_angle.sample()
+        log_prob_accel = dist_accel.log_prob(action_accel)
+        log_prob_angle = dist_angle.log_prob(action_angle)
+        value = self.critic(state)
 
-            action_probabilitiesAccel = tfp.distributions.Normal(loc=probs.numpy()[0][0], scale=float(np.power(probs.numpy()[0][1], 2)))
-            action_probabilitiesAngle = tfp.distributions.Normal(loc=probs.numpy()[0][2], scale=float(np.power(probs.numpy()[0][3], 2)))
-            log_prob_accel = action_probabilitiesAccel.log_prob(self.action['accel'])
-            log_prob_angle = action_probabilitiesAngle.log_prob(self.action['angle'])
+        value = value.numpy()[0]
+        action = {'accel': action_accel, 'angle': action_angle}
+        log_prob = {'accel': log_prob_accel, 'angle': log_prob_angle}
+        
+        return action, log_prob, value
 
-            delta = reward + self.gamma * state_value_ * (1 - int(done)) - state_value
-            actor_loss = -log_prob_accel * delta - log_prob_angle * delta
-            critic_loss = delta ** 2
-            total_loss = actor_loss + critic_loss
-            # print(f"reward: {reward}, state_value_: {state_value_}, state_value: {state_value}, log_prob_accel: {log_prob_accel}, log_prob_angle: {log_prob_angle}")
-            # print(f"delta: {delta}, actor_loss: {actor_loss}, total_loss: {total_loss}\n")
+    def learn(self):
+        for _ in range(self.n_epochs):
+            state_arr, action_arr, old_prob_arr, vals_arr,\
+                reward_arr, dones_arr, batches = \
+                self.memory.generate_batches()
 
-        gradient = tape.gradient(total_loss, self.actor_critic.trainable_variables)
-        self.actor_critic.optimizer.apply_gradients([
-            (grad, var) 
-            for (grad, var) in zip(
-            gradient, self.actor_critic.trainable_variables) if grad is not None])
+            values = vals_arr
+            advantage = np.zeros(len(reward_arr), dtype=np.float32)
+
+            for t in range(len(reward_arr)-1):
+                discount = 1
+                a_t = 0
+                for k in range(t, len(reward_arr)-1):
+                    a_t += discount*(reward_arr[k] + self.gamma*values[k+1] * (
+                        1-int(dones_arr[k])) - values[k])
+                    discount *= self.gamma*self.gae_lambda
+                advantage[t] = a_t
+
+            for batch in batches:
+                with tf.GradientTape(persistent=True) as tape:
+                    states = tf.convert_to_tensor(state_arr[batch])
+                    old_probs = tf.convert_to_tensor(old_prob_arr[batch])
+                    actions = tf.convert_to_tensor(action_arr[batch])
+
+                    probs = self.actor(states)
+                    dist = tfp.distributions.Categorical(probs)
+                    new_probs = dist.log_prob(actions)
+
+                    critic_value = self.critic(states)
+
+                    critic_value = tf.squeeze(critic_value, 1)
+
+                    prob_ratio = tf.math.exp(new_probs - old_probs)
+                    weighted_probs = advantage[batch] * prob_ratio
+                    clipped_probs = tf.clip_by_value(prob_ratio,
+                                                     1-self.policy_clip,
+                                                     1+self.policy_clip)
+                    weighted_clipped_probs = clipped_probs * advantage[batch]
+                    actor_loss = -tf.math.minimum(weighted_probs,
+                                                  weighted_clipped_probs)
+                    actor_loss = tf.math.reduce_mean(actor_loss)
+
+                    returns = advantage[batch] + values[batch]
+                    # critic_loss = tf.math.reduce_mean(tf.math.pow(
+                    #                                  returns-critic_value, 2))
+                    critic_loss = keras.losses.MSE(critic_value, returns)
+
+                actor_params = self.actor.trainable_variables
+                actor_grads = tape.gradient(actor_loss, actor_params)
+                critic_params = self.critic.trainable_variables
+                critic_grads = tape.gradient(critic_loss, critic_params)
+                self.actor.optimizer.apply_gradients(
+                        zip(actor_grads, actor_params))
+                self.critic.optimizer.apply_gradients(
+                        zip(critic_grads, critic_params))
+
+        self.memory.clear_memory()
 
     def initRandomPosition(self, xWidth, yWidth, agents, id):
         loactionEmpty = []
@@ -166,8 +184,6 @@ class Agent():
             self.id = id
             self.initSpeed(self.nonVectoralSpeedStart)
             self.initLine()
-            # self.initModel()
-            self.initModelCategorical()
             self.firstSpeed = copy.deepcopy(self.speed)
         
         if all(loactionEmpty):
@@ -182,8 +198,6 @@ class Agent():
             self.id = id
             self.initSpeed(self.nonVectoralSpeedStart)
             self.initLine()
-            # self.initModel()
-            self.initModelCategorical()
             self.firstSpeed = copy.deepcopy(self.speed)
         else:
             print(loactionEmpty)
@@ -201,8 +215,6 @@ class Agent():
         self.id = id
         self.initSpeed(self.nonVectoralSpeedStart)
         self.initLine()
-        # self.initModel()
-        self.initModelCategorical()
         self.firstSpeed = copy.deepcopy(self.speed)
 
     def initSpeed(self, u):
