@@ -7,6 +7,9 @@ import os
 from datetime import datetime
 import pathlib
 import numpy
+import tensorflow as tf
+
+tf.config.set_visible_devices([], 'GPU')
 
 if __name__ == '__main__':
     x = 58000 * 1.62 # 1.3
