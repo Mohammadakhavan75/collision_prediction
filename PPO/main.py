@@ -104,7 +104,7 @@ if __name__ == '__main__':
                         action, prob, val = agent.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList)
                         observation_ = [ob/x for ob in observation_]
-                        agent.store_transition(observation, action, prob, val, reward, done)
+                        agent.store_transition(observation, action, prob, val, reward, done[0])
                         if stepCounter % N == 0:
                             agent.learn()
                             learn_iters += 1
@@ -131,7 +131,7 @@ if __name__ == '__main__':
                         action, prob, val = agent.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList)
                         observation_ = [ob/x for ob in observation_]
-                        agent.store_transition(observation, action, prob, val, reward, done)
+                        agent.store_transition(observation, action, prob, val, reward, done[0])
                         if stepCounter % N == 0:
                             agent.learn()
                             learn_iters += 1
