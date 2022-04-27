@@ -207,6 +207,7 @@ if __name__ == '__main__':
                             target = agentList[0]
                         action, prob, val = ag.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, ag, target, deltaT, ismanouver, rewardsList)
+                        reward = -10000
                         observation_ = [ob/x for ob in observation_]
                         ag.store_transition(observation, action, prob, val, reward, done[0])
                         ag.learn()
