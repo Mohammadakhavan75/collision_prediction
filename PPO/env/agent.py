@@ -12,9 +12,9 @@ from .memory import PPOMemory
 from .networks import ActorNetwork, CriticNetwork
 
 class Agent():
-    def __init__(self, n_actions, gamma=0.99, alpha=0.0003,
+    def __init__(self, n_actions, gamma=0.99, alpha=0.0001 ,alpha1=0.0002, alpha2=0.003,
                  gae_lambda=0.95, policy_clip=0.2, batch_size=64,
-                 n_epochs=10, chkpt_dir='models/', acceptableDist=9260):
+                 n_epochs=20, chkpt_dir='models/', acceptableDist=9260):
         self.xPos = 0
         self.yPos = 0
         self.xbPos = 0
@@ -37,6 +37,7 @@ class Agent():
         self.timetoManouver = 300 # 300 # 190
         self.logProbs = 0
         self.lastDistance = 0
+        self.actorLoss = []
 
         self.gamma = gamma
         self.policy_clip = policy_clip
@@ -45,9 +46,9 @@ class Agent():
         self.chkpt_dir = chkpt_dir
 
         self.actor = ActorNetwork(n_actions)
-        self.actor.compile(optimizer=Adam(learning_rate=alpha))
+        self.actor.compile(optimizer=Adam(learning_rate=alpha1))
         self.critic = CriticNetwork()
-        self.critic.compile(optimizer=Adam(learning_rate=alpha))
+        self.critic.compile(optimizer=Adam(learning_rate=alpha2))
         self.memory = PPOMemory(batch_size)
            
     def store_transition(self, state, action, probs, vals, reward, done):
@@ -112,8 +113,7 @@ class Agent():
                 discount = 1
                 a_t = 0
                 for k in range(t, len(reward_arr)-1):
-                    a_t += discount*(reward_arr[k] + self.gamma*values[k+1] * (
-                        1-int(dones_arr[k])) - values[k])
+                    a_t += discount*(reward_arr[k] + self.gamma*values[k+1] * (1-int(dones_arr[k])) - values[k])
                     discount *= self.gamma*self.gae_lambda
                 advantage[t] = a_t
 
@@ -150,6 +150,7 @@ class Agent():
                     #                                  returns-critic_value, 2))
                     critic_loss = keras.losses.MSE(critic_value, returns)
 
+                # print(f"actor_loss: {actor_loss}")
                 actor_params = self.actor.trainable_variables
                 actor_grads = tape.gradient(actor_loss, actor_params)
                 critic_params = self.critic.trainable_variables
@@ -158,7 +159,7 @@ class Agent():
                         zip(actor_grads, actor_params))
                 self.critic.optimizer.apply_gradients(
                         zip(critic_grads, critic_params))
-
+        self.actorLoss.append(actor_loss)
         self.memory.clear_memory()
 
     def initRandomPosition(self, xWidth, yWidth, agents, id):
@@ -259,9 +260,10 @@ class Agent():
         self.nonVectoralSpeed = self.nonVectoralSpeedStart
         self.angle = self.firstAngle
         self.nonVectoralAccel = 0
+        self.actorLoss = []
 
     def getAttr(self):
-        return {'xPos': self.xPos, 'yPos': self.yPos, 'xDest': self.xDest, 'yDest': self.yDest,
+        return {'firstPosX': {self.firstPosX}, 'firstPosY': {self.firstPosY}, 'xPos': self.xPos, 'yPos': self.yPos, 'xDest': self.xDest, 'yDest': self.yDest,
             'speed': self.speed, 'accel': self.accel, 'Slope': self.slope, 'widthofOrigin': self.widthofOrigin}
 
     def checkArrival(self):
@@ -272,16 +274,16 @@ class Agent():
 
     def outofBound(self):
         if self.firstPosX < self.xDest and self.firstPosY < self.yDest:
-            if self.xPos > self.xDest or self.yPos > self.yDest:
+            if self.xPos > self.xDest or self.yPos > self.yDest or self.xPos < self.firstPosX or self.yPos < self.firstPosY:
                 return True
-        elif self.firstPosY < self.yDest and self.firstPosY > self.yDest:
-            if self.yPos > self.yDest or self.yPos < self.yDest:
+        elif self.firstPosX < self.xDest and self.firstPosY > self.yDest:
+            if self.xPos > self.xDest or self.yPos < self.yDest or self.xPos < self.firstPosX or self.yPos > self.firstPosY:
                 return True
         elif self.firstPosX > self.xDest and self.firstPosY < self.yDest:
-            if self.xPos < self.xDest or self.yPos > self.yDest:
+            if self.xPos < self.xDest or self.yPos > self.yDest or self.xPos > self.firstPosX or self.yPos < self.firstPosY:
                 return True
-        elif self.firstPosY > self.yDest and self.firstPosY > self.yDest:
-            if self.yPos < self.yDest or self.yPos < self.yDest:
+        elif self.firstPosX > self.xDest and self.firstPosY > self.yDest:
+            if self.xPos < self.xDest or self.yPos < self.yDest or self.xPos > self.firstPosX or self.yPos > self.firstPosY:
                 return True
         else:
             return False

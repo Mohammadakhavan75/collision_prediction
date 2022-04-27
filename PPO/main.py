@@ -88,13 +88,31 @@ if __name__ == '__main__':
                 plt.figure(figsize=(16, 10))
                 plt.plot(info[0][0], color='b')
                 plt.plot(info[0][1], color='r')
-                plt.savefig(logPath + "R_Forward_FromLine_Agent_0_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.plot(info[0][3], color='y')
+                plt.savefig(logPath + "R_Agent_0_100_" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close("all")
 
                 plt.figure(figsize=(16, 10))
                 plt.plot(info[1][0], color='b')
                 plt.plot(info[1][1], color='r')
-                plt.savefig(logPath + "R_Forward_FromLine_Agent_1_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.plot(info[1][3], color='y')
+                plt.savefig(logPath + "R_Agent_1_100_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
+
+                plt.figure(figsize=(16, 10))
+                plt.title("Actor Loss of Agnets")
+                plt.xlabel("x")
+                plt.ylabel("value")
+                plt.plot(agentList[0].actorLoss, color='r')
+                plt.savefig(logPath + "ActorLoss_Agent0_" + str(i) + "_" + str(stepCounter) + ".png")
+                plt.close("all")
+
+                plt.figure(figsize=(16, 10))
+                plt.title("Actor Loss of Agnets")
+                plt.xlabel("x")
+                plt.ylabel("value")
+                plt.plot(agentList[1].actorLoss, color='r')
+                plt.savefig(logPath + "ActorLoss_Agent1_" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close("all")
 
             for j, agent in enumerate(agentList):
@@ -182,8 +200,8 @@ if __name__ == '__main__':
                     breakEpisode = True
                     print("agent goes out of bound!")
 
-                if score[j] < -200000:
-                    print("agent score goes lower than -20000")
+                if score[j] < -100000:
+                    print("agent score goes lower than -100000")
                     breakEpisode = True
             
         print("episode %f finished!", i)
@@ -245,21 +263,21 @@ if __name__ == '__main__':
             plt.savefig(logPath + "end_episode_distAgent_" + str(i) + ".png")
             plt.close("all")
 
-            plt.figure(figsize=(16, 10))
-            plt.title("Reward Agent 1 Going Left")
-            plt.xlabel("steps")
-            plt.ylabel("values")
-            plt.plot(info[0][3], color='y')
-            plt.savefig(logPath + "end_episode_R_Left_Agent_0_" + str(i) + ".png")
-            plt.close("all")
+            # plt.figure(figsize=(16, 10))
+            # plt.title("Reward Agent 1 Going Left")
+            # plt.xlabel("steps")
+            # plt.ylabel("values")
+            # plt.plot(info[0][3], color='y')
+            # plt.savefig(logPath + "end_episode_R_Left_Agent_0_" + str(i) + ".png")
+            # plt.close("all")
 
-            plt.figure(figsize=(16, 10))
-            plt.title("Reward Agent 2 Going Left")
-            plt.xlabel("steps")
-            plt.ylabel("values")
-            plt.plot(info[1][3], color='y')
-            plt.savefig(logPath + "end_episode_R_Left_Agent_1_" + str(i) + ".png")
-            plt.close("all")
+            # plt.figure(figsize=(16, 10))
+            # plt.title("Reward Agent 2 Going Left")
+            # plt.xlabel("steps")
+            # plt.ylabel("values")
+            # plt.plot(info[1][3], color='y')
+            # plt.savefig(logPath + "end_episode_R_Left_Agent_1_" + str(i) + ".png")
+            # plt.close("all")
 
             plt.figure(figsize=(16, 10))
             plt.title("Reward Agent 1")
@@ -267,7 +285,8 @@ if __name__ == '__main__':
             plt.ylabel("values")
             plt.plot(info[0][0], color='b' , label="Going Forward") 
             plt.plot(info[0][1], color='r', label="From Line")
-            plt.savefig(logPath + "end_episode_R_Forward_FromLine_Agent_0_" + str(i) + "_" + str(stepCounter) + ".png")
+            plt.plot(info[0][3], color='y', label="Going Left")
+            plt.savefig(logPath + "end_episode_R_Agent_0_" + str(i) + "_" + str(stepCounter) + ".png")
             plt.close("all")
 
             plt.figure(figsize=(16, 10))
@@ -276,7 +295,8 @@ if __name__ == '__main__':
             plt.ylabel("values")
             plt.plot(info[1][0], color='b', label="Going Forward")
             plt.plot(info[1][1], color='r',  label="From Line")
-            plt.savefig(logPath + "end_episode_R_Forward_FromLine_Agent_1_" + str(i) + "_" + str(stepCounter) + ".png")
+            plt.plot(info[1][3], color='y', label="Going Left")
+            plt.savefig(logPath + "end_episode_R_Agent_1_" + str(i) + "_" + str(stepCounter) + ".png")
             plt.close("all")
 
             with open(logPath + "end_episode_actionList" + str(i) + ".txt", 'w') as f:

@@ -89,11 +89,11 @@ class Env():
         #     target = agentList[1]
         rewardFinal = 1000 # 1000
         rewardTowardGoalConst = 0.0001
-        rewardCollision = -100000 # -1000
-        rewardLeft = -100 # -10
+        rewardCollision = -10000 # -1000
+        rewardLeft = -10 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
-        R_c = 2
+        R_c = -2
         k_r = 0.01
         k_c = 0.01
         k_v = 0.001
@@ -106,8 +106,8 @@ class Env():
             agent.reward += rewardFinal
             returnReward += rewardFinal
             return agent.reward
-        elif lastDist <= agent.distfromAgent(target):
-        # else:
+        # elif lastDist <= agent.distfromAgent(target):
+        else:
             # print(f"lastDist < agent.distfromAgent(target) {lastDist < agent.distfromAgent(target)}, lastDist: {lastDist},  agent.distfromAgent(target), {agent.distfromAgent(target)}")
             rr = np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)  - np.sqrt((agent.xPos - agent.xDest) ** 2 + (agent.yPos - agent.yDest) ** 2)
             rere = 1/(1 + np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)) * rr
@@ -115,8 +115,8 @@ class Env():
             agent.reward += rere
             returnReward += rere
             rewardsList[agent.id][0].append(rere)
-        else:
-            rewardsList[agent.id][0].append(0)
+        # else:
+            # rewardsList[agent.id][0].append(0)
 
             # 2- Heading error and Cross Error reward
         # if not agent.checkArrival() and not ismanouver:
@@ -156,7 +156,7 @@ class Env():
         if agent.angleFromPathLine():
             agent.reward += rewardLeft
             returnReward += rewardLeft
-            rewardsList[agent.id][3].append(rewardLeft)
+            rewardsList[agent.id][3].append(rewardLeft/10)
         else:
             rewardsList[agent.id][3].append(0)
 
