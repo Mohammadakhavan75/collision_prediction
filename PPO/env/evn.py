@@ -123,13 +123,17 @@ class Env():
         # if not agent.checkArrival() and lastDist <= agent.distfromAgent(target):
         if not agent.checkArrival():
             # print("reward Heading") 
-
+            a = agent.angleFromOriginalLine()
             rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
-            rHeadingCross2 = np.exp(-k_d * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+            rHeadingCross2 = np.exp(-k_d * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+            # print(f"ID: {agent.id}, distfromPathLine: {agent.distfromPathLine()}, -k_d * np.abs(agent.distfromPathLine()): {-k_d * np.abs(agent.distfromPathLine())},\
+                # np.exp(-k_d * np.abs(agent.distfromPathLine())): {np.exp(-k_d * np.abs(agent.distfromPathLine()))}, agent.angleFromPathLine(): {agent.angleFromPathLine()},\
+                #      -k_c * np.abs(agent.angleFromPathLine()): {-k_c * np.abs(agent.angleFromPathLine())}, np.exp(-k_c * np.abs(agent.angleFromPathLine())): {np.exp(-k_c * np.abs(agent.angleFromPathLine()))},\
+                #         np.exp(-k_v * np.abs(deltaUp)): {np.exp(-k_v * np.abs(deltaUp))}\n\n")
             agent.reward += rHeadingCross2
             returnReward += rHeadingCross2
             rewardsList[agent.id][1].append(rHeadingCross2)
-            print(f"rHeadingCross2: {rHeadingCross2}, agnet ID: {agent.id}")
+            # print(f"rHeadingCross2: {rHeadingCross2}, agnet ID: {agent.id}")
         else:
             rewardsList[agent.id][1].append(0)
         

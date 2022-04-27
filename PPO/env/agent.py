@@ -379,7 +379,26 @@ class Agent():
         self.xPos = self.xPos + self.speed['vx'] * deltaT + 0.5 * self.accel['ax'] * (deltaT ** 2)
         self.yPos = self.yPos + self.speed['vy'] * deltaT + 0.5 * self.accel['ay'] * (deltaT ** 2)
         self.updateSpeed(angle, nonVectoralSpeed)
-        
+
+    def angleFromOriginalLine(self):
+        distance = [self.xPos - self.firstPosX, self.yPos - self.firstPosX]
+        norm = np.sqrt(distance[0] ** 2 + distance[1] ** 2)
+        direction = [distance[0] / norm, distance[1] / norm]
+        bulletVectorAgentPoisionLine = [direction[0] * np.sqrt(2), direction[1] * np.sqrt(2)]
+
+        distance = [self.xDest - self.firstPosX, self.yDest - self.firstPosY]
+        norm = np.sqrt(distance[0] ** 2 + distance[1] ** 2)
+        direction = [distance[0] / norm, distance[1] / norm]
+        bulletVectorAgentDirectLine = [direction[0] * np.sqrt(2), direction[1] * np.sqrt(2)]
+
+        v1_u = bulletVectorAgentPoisionLine / np.linalg.norm(bulletVectorAgentPoisionLine)
+        v2_u = bulletVectorAgentDirectLine / np.linalg.norm(bulletVectorAgentDirectLine)
+        angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+        # print(f"ID: {self.id}, angle: {angle}")
+        return angle
+
+
     def angleFromPathLine(self):
         v1 = [self.xPos - self.firstPosX, self.yPos - self.firstPosY]
         # distance = [self.xPos - self.firstPosX, self.yPos - self.firstPosX]
