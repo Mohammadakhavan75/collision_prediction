@@ -93,7 +93,7 @@ class Env():
         rewardLeft = -10 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
-        R_c = -2
+        R_c = 2.5
         k_r = 0.01
         k_c = 0.01
         k_v = 0.001
@@ -120,8 +120,8 @@ class Env():
 
             # 2- Heading error and Cross Error reward
         # if not agent.checkArrival() and not ismanouver:
-        if not agent.checkArrival() and lastDist <= agent.distfromAgent(target):
-        # if not agent.checkArrival():
+        # if not agent.checkArrival() and lastDist <= agent.distfromAgent(target):
+        if not agent.checkArrival():
             # print("reward Heading") 
 
             rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
@@ -129,7 +129,7 @@ class Env():
             agent.reward += rHeadingCross2
             returnReward += rHeadingCross2
             rewardsList[agent.id][1].append(rHeadingCross2)
-            # print(f"rHeadingCross2: {rHeadingCross2}, agnet ID: {agent.id}")
+            print(f"rHeadingCross2: {rHeadingCross2}, agnet ID: {agent.id}")
         else:
             rewardsList[agent.id][1].append(0)
         
@@ -144,15 +144,7 @@ class Env():
         else:
             rewardsList[agent.id][2].append(0)
             rewardsList[agent.id][4].append(0)
-        # if agent.checkLeftofLine() > 1e-06:
-        # if agent.checkLeftofLine() > 1e-06:
-            # print("############## reward going left of line ##################")
-            # agent.reward += rewardLeft
-        # if agent.checkAngleAction(target, lastDist, changedAngle):
-        #     # print(f"reward going left of line: changedAngle: {changedAngle}, lastDist {lastDist}, agent.distfromAgent(target): {agent.distfromAgent(target)}")
-        #     agent.reward += rewardLeft
-        #     returnReward += rewardLeft
-        #     rewardsList[agent.id][3].append(rewardLeft)
+
         if agent.angleFromPathLine():
             agent.reward += rewardLeft
             returnReward += rewardLeft
