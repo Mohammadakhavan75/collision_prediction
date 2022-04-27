@@ -8,8 +8,23 @@ from datetime import datetime
 import pathlib
 import numpy
 import tensorflow as tf
+import gc
+
 
 tf.config.set_visible_devices([], 'GPU')
+
+def MatplotlibClearMemory():
+    #usedbackend = matplotlib.get_backend()
+    #matplotlib.use('Cairo')
+    allfignums = plt.get_fignums()
+    for i in allfignums:
+        fig = plt.figure(i)
+        fig.clear()
+        fig.clf()
+        plt.close( fig )
+        del fig
+        plt.clf()
+        gc.collect()
 
 if __name__ == '__main__':
     x = 58000 * 1.62 # 1.3
@@ -116,6 +131,8 @@ if __name__ == '__main__':
                 plt.plot(agentList[1].actorLoss, color='r')
                 plt.savefig(logPath + "ActorLoss_Agent1_" + str(i) + "_" + str(stepCounter) + ".png")
                 plt.close("all")
+
+                # MatplotlibClearMemory()
 
             for j, agent in enumerate(agentList):
                 if not agent.checkArrival():

@@ -94,10 +94,10 @@ class Env():
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
         R_c = 2.5
-        k_r = 0.01
-        k_c = 0.01
-        k_v = 0.001
-        k_d = 0.001
+        k_r = 0.01  # 0.01
+        k_c = 0.01  # 0.01
+        k_v = 0.01 # 0.001
+        k_d = 0.01 # 0.001
 
         # A) Path following Reward function:
             # 1- Goal reward
@@ -127,9 +127,9 @@ class Env():
             rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromPathLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromPathLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
             rHeadingCross2 = np.exp(-k_d * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
             # print(f"ID: {agent.id}, distfromPathLine: {agent.distfromPathLine()}, -k_d * np.abs(agent.distfromPathLine()): {-k_d * np.abs(agent.distfromPathLine())},\
-                # np.exp(-k_d * np.abs(agent.distfromPathLine())): {np.exp(-k_d * np.abs(agent.distfromPathLine()))}, agent.angleFromPathLine(): {agent.angleFromPathLine()},\
-                #      -k_c * np.abs(agent.angleFromPathLine()): {-k_c * np.abs(agent.angleFromPathLine())}, np.exp(-k_c * np.abs(agent.angleFromPathLine())): {np.exp(-k_c * np.abs(agent.angleFromPathLine()))},\
-                #         np.exp(-k_v * np.abs(deltaUp)): {np.exp(-k_v * np.abs(deltaUp))}\n\n")
+            #     np.exp(-k_d * np.abs(agent.distfromPathLine())): {np.exp(-k_d * np.abs(agent.distfromPathLine()))}, agent.angleFromOriginalLine(): {agent.angleFromOriginalLine()},\
+            #          -k_c * np.abs(agent.angleFromOriginalLine()): {-k_c * np.abs(agent.angleFromOriginalLine())}, np.exp(-k_c * np.abs(agent.angleFromOriginalLine())): {np.exp(-k_c * np.abs(agent.angleFromOriginalLine()))},\
+            #             np.exp(-k_v * np.abs(deltaUp)): {np.exp(-k_v * np.abs(deltaUp))}\n\n")
             agent.reward += rHeadingCross2
             returnReward += rHeadingCross2
             rewardsList[agent.id][1].append(rHeadingCross2)
