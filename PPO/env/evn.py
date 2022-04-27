@@ -98,6 +98,7 @@ class Env():
         k_c = 0.01  # 0.01
         k_v = 0.001 # 0.001
         k_d = 0.001 # 0.001
+        discounter = 1 # 1
 
         # A) Path following Reward function:
             # 1- Goal reward
@@ -125,17 +126,17 @@ class Env():
             # print("reward Heading") 
             a = agent.angleFromOriginalLine()
             rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromOriginalLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
-            rHeadingCross2 = np.exp(-k_d * np.abs(agent.distfromPathLine())) + np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
-            print(f"ID: {agent.id}, distfromPathLine: {agent.distfromPathLine()}, -k_d * np.abs(agent.distfromPathLine()): {-k_d * np.abs(agent.distfromPathLine())},\
-                np.exp(-k_d * np.abs(agent.distfromPathLine())): {np.exp(-k_d * np.abs(agent.distfromPathLine()))}, agent.angleFromOriginalLine(): {agent.angleFromOriginalLine()},\
-                     -k_c * np.abs(agent.angleFromOriginalLine()): {-k_c * np.abs(agent.angleFromOriginalLine())}, np.exp(-k_c * np.abs(agent.angleFromOriginalLine())): {np.exp(-k_c * np.abs(agent.angleFromOriginalLine()))},\
-                        np.exp(-k_v * np.abs(deltaUp)): {np.exp(-k_v * np.abs(deltaUp))}\n\n")
-            # if agent.distfromPathLine() != 0:
+            rHeadingCross2 = discounter * np.exp(-k_d * np.abs(agent.distfromPathLine())) + discounter * np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + discounter * np.exp(-k_v * np.abs(deltaUp)) - R_c
+            # print(f"ID: {agent.id}, distfromPathLine: {agent.distfromPathLine()}, -k_d * np.abs(agent.distfromPathLine()): {-k_d * np.abs(agent.distfromPathLine())},\
+            #     np.exp(-k_d * np.abs(agent.distfromPathLine())): {np.exp(-k_d * np.abs(agent.distfromPathLine()))}, agent.angleFromOriginalLine(): {agent.angleFromOriginalLine()},\
+            #          -k_c * np.abs(agent.angleFromOriginalLine()): {-k_c * np.abs(agent.angleFromOriginalLine())}, np.exp(-k_c * np.abs(agent.angleFromOriginalLine())): {np.exp(-k_c * np.abs(agent.angleFromOriginalLine()))},\
+            #             np.exp(-k_v * np.abs(deltaUp)): {np.exp(-k_v * np.abs(deltaUp))}\n\n")
+            # if agent.distfromPathLine() > 1:
             #     rHeadingCross2 += 1/agent.distfromPathLine()
             agent.reward += rHeadingCross2
             returnReward += rHeadingCross2
             rewardsList[agent.id][1].append(rHeadingCross2)
-            # print(f"rHeadingCross2: {rHeadingCross2}, agnet ID: {agent.id}, distfromPathLine {1/agent.distfromPathLine()}")
+            print(f"rHeadingCross2: {rHeadingCross2}, agnet ID: {agent.id}, distfromPathLine {1/agent.distfromPathLine()}")
         else:
             rewardsList[agent.id][1].append(0)
         
