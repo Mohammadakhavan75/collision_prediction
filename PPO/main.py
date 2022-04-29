@@ -51,7 +51,7 @@ if __name__ == '__main__':
     learn_iters = 0
     dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     world = Env(x, y)
-    agentList = world.initAgent(n_actions=18, random=False)
+    agentList = world.initAgent(n_actions=5, random=False) # 18
     _ = agentList.pop(2)
     episodes=1000
     logPath = f"./Log/{dtLogger}/"
@@ -171,8 +171,8 @@ if __name__ == '__main__':
                         score[j] += reward
                         totalScore.append(score[j])
                         episodeScore.append(score[j])
-                        actionsListEpisode[0].append(action['accel'].numpy())
-                        actionsListEpisode[1].append(action['angle'].numpy())
+                        # actionsListEpisode[0].append(action['accel'].numpy())
+                        # actionsListEpisode[1].append(action['angle'].numpy())
                         distAgent[agent.id].append(agent.distfromAgent(target))
                         if agent.id == 0:
                             px.append(agent.xPos)
@@ -198,8 +198,8 @@ if __name__ == '__main__':
                         score[j] += reward
                         totalScore.append(score[j])
                         episodeScore.append(score[j])
-                        actionsListEpisode[0].append(action['accel'].numpy())
-                        actionsListEpisode[1].append(action['angle'].numpy())
+                        # actionsListEpisode[0].append(action['accel'].numpy())
+                        # actionsListEpisode[1].append(action['angle'].numpy())
                         distAgent[agent.id].append(agent.distfromAgent(target))
                         if agent.id == 0:
                             px.append(agent.xPos)

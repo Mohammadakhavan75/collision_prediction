@@ -84,19 +84,22 @@ class Agent():
         state = tf.convert_to_tensor([observation])
 
         probs = self.actor(state)
-        dist_angle = tfp.distributions.Categorical(probs[0][:9])
-        dist_accel = tfp.distributions.Categorical(probs[0][9:])
-        action_accel = dist_accel.sample()
-        action_angle = dist_angle.sample()
-        log_prob_accel = dist_accel.log_prob(action_accel)
-        log_prob_angle = dist_angle.log_prob(action_angle)
+        dist = tfp.distributions.Categorical(probs[0][:9])
+        # dist_angle = tfp.distributions.Categorical(probs[0][:9])
+        # dist_accel = tfp.distributions.Categorical(probs[0][9:])
+        action = dist.sample()
+        # action_accel = dist_accel.sample()
+        # action_angle = dist_angle.sample()
+        log_prob = dist.log_prob(action)
+        # log_prob_accel = dist_accel.log_prob(action_accel)
+        # log_prob_angle = dist_angle.log_prob(action_angle)
 
         value = self.critic(state)
 
         value = value.numpy()[0]
-        action = {'accel': action_accel, 'angle': action_angle}
-        log_prob = {'accel': log_prob_accel, 'angle': log_prob_angle}
-        log_prob = (log_prob_accel + log_prob_angle)/2
+        # action = {'accel': action_accel, 'angle': action_angle}
+        # log_prob = {'accel': log_prob_accel, 'angle': log_prob_angle}
+        # log_prob = (log_prob_accel + log_prob_angle)/2
         
         return action, log_prob, value
 
@@ -121,15 +124,15 @@ class Agent():
                 with tf.GradientTape(persistent=True) as tape:
                     states = tf.convert_to_tensor(state_arr[batch])
                     old_probs = tf.convert_to_tensor(old_prob_arr[batch])
-                    # actions = tf.convert_to_tensor(action_arr[batch])
-                    actions_accel = tf.convert_to_tensor([ac['accel'] for ac in action_arr[batch]])
-                    actions_angle = tf.convert_to_tensor([ac['angle'] for ac in action_arr[batch]])
+                    actions = tf.convert_to_tensor(action_arr[batch])
+                    # actions_accel = tf.convert_to_tensor([ac['accel'] for ac in action_arr[batch]])
+                    # actions_angle = tf.convert_to_tensor([ac['angle'] for ac in action_arr[batch]])
                     probs = self.actor(states)
                     dist = tfp.distributions.Categorical(probs)
-                    # new_probs = dist.log_prob(actions)
-                    new_probs_accel = dist.log_prob(actions_accel)
-                    new_probs_angle = dist.log_prob(actions_angle)
-                    new_probs = (new_probs_accel + new_probs_angle)/2
+                    new_probs = dist.log_prob(actions)
+                    # new_probs_accel = dist.log_prob(actions_accel)
+                    # new_probs_angle = dist.log_prob(actions_angle)
+                    # new_probs = (new_probs_accel + new_probs_angle)/2
 
                     critic_value = self.critic(states)
 
@@ -147,8 +150,6 @@ class Agent():
                     actor_loss = tf.math.reduce_mean(actor_loss)
 
                     returns = advantage[batch] + values[batch]
-                    # critic_loss = tf.math.reduce_mean(tf.math.pow(
-                    #                                  returns-critic_value, 2))
                     critic_loss = keras.losses.MSE(critic_value, returns)
 
                 # actor_loss = -actor_loss
