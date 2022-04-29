@@ -105,7 +105,7 @@ class Agent():
             state_arr, action_arr, old_prob_arr, vals_arr,\
                 reward_arr, dones_arr, batches = \
                 self.memory.generate_batches()
-
+            # print(f"\nagnet ID: {self.id}, reward_arr: {reward_arr}")
             values = vals_arr
             advantage = np.zeros(len(reward_arr), dtype=np.float32)
 
@@ -140,6 +140,7 @@ class Agent():
                     clipped_probs = tf.clip_by_value(prob_ratio,
                                                      1-self.policy_clip,
                                                      1+self.policy_clip)
+                    # print(f"advantage[batch]: {advantage[batch]}")
                     weighted_clipped_probs = clipped_probs * advantage[batch]
                     actor_loss = -tf.math.minimum(weighted_probs,
                                                   weighted_clipped_probs)
@@ -150,7 +151,9 @@ class Agent():
                     #                                  returns-critic_value, 2))
                     critic_loss = keras.losses.MSE(critic_value, returns)
 
-                # print(f"actor_loss: {actor_loss}")
+                # actor_loss = -actor_loss
+                # critic_loss = [-cl for cl in critic_loss]
+                # print(f"actor_loss: {actor_loss}, critic_loss: {critic_loss}\n")
                 actor_params = self.actor.trainable_variables
                 actor_grads = tape.gradient(actor_loss, actor_params)
                 critic_params = self.critic.trainable_variables
