@@ -153,7 +153,7 @@ class Agent():
 
                 # actor_loss = -actor_loss
                 # critic_loss = [-cl for cl in critic_loss]
-                # print(f"actor_loss: {actor_loss}, critic_loss: {critic_loss}\n")
+                
                 actor_params = self.actor.trainable_variables
                 actor_grads = tape.gradient(actor_loss, actor_params)
                 critic_params = self.critic.trainable_variables
@@ -162,7 +162,8 @@ class Agent():
                         zip(actor_grads, actor_params))
                 self.critic.optimizer.apply_gradients(
                         zip(critic_grads, critic_params))
-        self.actorLoss.append(actor_loss)
+        # print(f"actor_loss: {actor_loss}, critic_loss: {critic_loss}\n")
+        self.actorLoss.append(actor_loss.numpy())
         self.memory.clear_memory()
 
     def initRandomPosition(self, xWidth, yWidth, agents, id):
