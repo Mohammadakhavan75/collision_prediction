@@ -128,8 +128,11 @@ class Agent():
                     # actions_accel = tf.convert_to_tensor([ac['accel'] for ac in action_arr[batch]])
                     # actions_angle = tf.convert_to_tensor([ac['angle'] for ac in action_arr[batch]])
                     probs = self.actor(states)
+                    # if self.id==0:
+                    #     print(f'\n\nbatch spliter\nprobs: {probs}')
                     dist = tfp.distributions.Categorical(probs)
                     new_probs = dist.log_prob(actions)
+                    # print(f"actions: {actions},\nnew_probs: {new_probs}\n\n")
                     # new_probs_accel = dist.log_prob(actions_accel)
                     # new_probs_angle = dist.log_prob(actions_angle)
                     # new_probs = (new_probs_accel + new_probs_angle)/2
@@ -163,6 +166,7 @@ class Agent():
                         zip(actor_grads, actor_params))
                 self.critic.optimizer.apply_gradients(
                         zip(critic_grads, critic_params))
+        # print(f"actor params: {actor_params[-1].numpy()}")
         # print(f"actor_loss: {actor_loss}, critic_loss: {critic_loss}\n")
         self.actorLoss.append(actor_loss.numpy())
         self.memory.clear_memory()
