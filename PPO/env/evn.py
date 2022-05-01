@@ -157,7 +157,7 @@ class Env():
 
             # if agent.distfromPathLine() > 1:
             #     rHeadingCross2 -= np.log(agent.distfromPathLine())/np.log(10)
-            returnReward += rHeadingCross2
+            returnReward += rHeadingCross3
             # returnReward -= rHeadingCross3
             rewardsList[agent.id][1].append(rHeadingCross3)
             # print(f"agnet ID: {agent.id}, rHeadingCross3: {rHeadingCross3}")
