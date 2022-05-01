@@ -62,7 +62,7 @@ if __name__ == '__main__':
         print("episode %f started!", i)
         done=[False for _ in agentList]
         observation, agentList = world.reset(agentList)
-        observation = [ob/x for ob in observation]
+        # observation = [ob/x for ob in observation]
         episodeScore = []
         actionsListEpisode = [[],[]]
         outputofModel = []
@@ -161,7 +161,7 @@ if __name__ == '__main__':
                         manouverStarted = True
                         action, prob, val = agent.choose_action(observation)
                         observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
-                        observation_ = [ob/x for ob in observation_]
+                        # observation_ = [ob/x for ob in observation_]
                         agent.store_transition(observation, action, prob, val, reward, done[0])
                         if stepCounter % N == 0:
                             agent.learn()
@@ -184,39 +184,12 @@ if __name__ == '__main__':
                             maxDistfromPathPerEpisode = agent.distfromPathLine()
                         if maxDistfromPath < agent.distfromPathLine():
                             maxDistfromPath = agent.distfromPathLine()
-
-                    elif agent.distfromPathLine() > 0.00001:
-                        action, prob, val = agent.choose_action(observation)
-                        observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
-                        observation_ = [ob/x for ob in observation_]
-                        agent.store_transition(observation, action, prob, val, reward, done[0])
-                        if stepCounter % N == 0:
-                            agent.learn()
-                            learn_iters += 1
-                        
-                        observation = observation_
-                        score[j] += reward
-                        totalScore.append(score[j])
-                        episodeScore.append(score[j])
-                        # actionsListEpisode[0].append(action['accel'].numpy())
-                        # actionsListEpisode[1].append(action['angle'].numpy())
-                        distAgent[agent.id].append(agent.distfromAgent(target))
-                        if agent.id == 0:
-                            px.append(agent.xPos)
-                            py.append(agent.yPos)
-                        if agent.id == 1:
-                            pxt.append(agent.xPos)
-                            pyt.append(agent.yPos)
-                        if maxDistfromPathPerEpisode < agent.distfromPathLine():
-                            maxDistfromPathPerEpisode = agent.distfromPathLine()
-                        if maxDistfromPath < agent.distfromPathLine():
-                            maxDistfromPath = agent.distfromPathLine()
-
+                            
                     else:
                         ismanouver = False
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
-                        observation_ = [ob/x for ob in observation_]
+                        # observation_ = [ob/x for ob in observation_]
                         score[j] += reward
                         observation = observation_
 
@@ -232,17 +205,17 @@ if __name__ == '__main__':
 
                 if agent.outofBound():
                     breakEpisode = True
-                    for ag in agentList:
-                        if ag.id == agentList[0].id:
-                            target = agentList[1]
-                        else:
-                            target = agentList[0]
-                        action, prob, val = ag.choose_action(observation)
-                        observation_, reward, ـ, info = world.step(action, ag, target, deltaT, ismanouver, rewardsList, totalTime)
-                        reward = -10000
-                        observation_ = [ob/x for ob in observation_]
-                        ag.store_transition(observation, action, prob, val, reward, done[0])
-                        ag.learn()
+                    # for ag in agentList:
+                    #     if ag.id == agentList[0].id:
+                    #         target = agentList[1]
+                    #     else:
+                    #         target = agentList[0]
+                    #     action, prob, val = ag.choose_action(observation)
+                    #     observation_, reward, ـ, info = world.step(action, ag, target, deltaT, ismanouver, rewardsList, totalTime)
+                    #     reward = -10000
+                    #     observation_ = [ob/x for ob in observation_]
+                    #     ag.store_transition(observation, action, prob, val, reward, done[0])
+                    #     ag.learn()
 
                     print("agent goes out of bound!")
 

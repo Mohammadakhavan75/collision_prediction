@@ -108,7 +108,8 @@ class Agent():
             state_arr, action_arr, old_prob_arr, vals_arr,\
                 reward_arr, dones_arr, batches = \
                 self.memory.generate_batches()
-            # print(f"\nagnet ID: {self.id}, reward_arr: {reward_arr}")
+            # if self.id==0:
+            #     print(f"\nagnet ID: {self.id}, reward_arr: {reward_arr}")
             values = vals_arr
             advantage = np.zeros(len(reward_arr), dtype=np.float32)
 
@@ -119,6 +120,9 @@ class Agent():
                     a_t += discount*(reward_arr[k] + self.gamma*values[k+1] * (1-int(dones_arr[k])) - values[k])
                     discount *= self.gamma*self.gae_lambda
                 advantage[t] = a_t
+            
+            # if self.id==0:
+            #     print(f"\nadvantage: {advantage}\n\n")
 
             for batch in batches:
                 with tf.GradientTape(persistent=True) as tape:
@@ -146,12 +150,12 @@ class Agent():
                     clipped_probs = tf.clip_by_value(prob_ratio,
                                                      1-self.policy_clip,
                                                      1+self.policy_clip)
-                    # print(f"advantage[batch]: {advantage[batch]}")
+                    # print(f"prob_ratio: {prob_ratio}, self.policy_clip: {self.policy_clip}, clipped_probs: {list(set(list(clipped_probs.numpy())) - set(list(prob_ratio.numpy())))}")
                     weighted_clipped_probs = clipped_probs * advantage[batch]
                     actor_loss = -tf.math.minimum(weighted_probs,
-                                                  weighted_clipped_probs)
+                                                  weighted_clipped_probs)      
                     actor_loss = tf.math.reduce_mean(actor_loss)
-
+                    # print(f'actor_loss: {actor_loss.numpy()}, diff_in_probs: {list(set(list(weighted_probs.numpy())) - set(list(weighted_clipped_probs.numpy())))}')
                     returns = advantage[batch] + values[batch]
                     critic_loss = keras.losses.MSE(critic_value, returns)
 
@@ -368,15 +372,16 @@ class Agent():
     def updateAcceleration(self, Si, u, omega, g, deltaT):
         u = u + g * deltaT
         Si = Si + omega * deltaT
-        # if Si > 2 * np.pi:
-        #     Si = Si - 2 * np.pi
-        # if Si < 0:
-        #     Si = Si + 2 * np.pi
+        if Si > 2 * np.pi:
+            Si = Si - 2 * np.pi
+        if Si < 0:
+            Si = Si + 2 * np.pi
         self.accel['ax'] = g * np.cos(Si) + u * omega * np.sin(Si)
         self.accel['ay'] = g * np.sin(Si) - u * omega * np.cos(Si)
+        # if self.id == 0:
+        #     print(f"g: {g}, omega: {omega}, u: {u}, Si: {Si}, self.accel: {self.accel}")
         self.nonVectoralSpeed = u
         self.angle = Si
-
 
     def updateSpeed(self, Si, u):
         self.speed['vx'] = np.cos(Si) * u
