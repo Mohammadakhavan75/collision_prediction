@@ -106,6 +106,8 @@ class Env():
         Vt = [agent.xPos - agent.firstPosX, agent.yPos - agent.firstPosY]
         Va = [agent.firstSpeed['vx'] * totalTime, agent.firstSpeed['vy'] * totalTime]
         # Sia = np.arccos(np.dot(Va, Vt)/(np.linalg.norm(Va) * np.linalg.norm(Vt)))
+        Vpx = [agent.firstSpeed['vx'], 0]
+        Vp = [agent.firstSpeed['vx'], agent.firstSpeed['vy']]
         da = np.linalg.norm(Va) - (np.dot(Va, Vt)/np.linalg.norm(Va))
         Vox = [agent.speed['vx'], 0]
         SId = np.arccos(np.dot([agent.speed['vx'], agent.speed['vy']], Vox)/(np.linalg.norm([agent.speed['vx'], agent.speed['vy']]) * np.linalg.norm(Vox)))
