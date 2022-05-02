@@ -15,8 +15,6 @@ import seaborn as sns
 tf.config.set_visible_devices([], 'GPU')
 
 def MatplotlibClearMemory():
-    #usedbackend = matplotlib.get_backend()
-    #matplotlib.use('Cairo')
     allfignums = plt.get_fignums()
     for i in allfignums:
         fig = plt.figure(i)
@@ -36,29 +34,15 @@ def loggerMid(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     logPath = f"./Log/{dtLogger}/episode_{i}/"
     pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("Path of Agnets")
-    # plt.xlabel("x")
-    # plt.ylabel("y")
-    # plt.plot(px, py, color='b')
-    # plt.plot(pxt, pyt, color='k')
     sns.lineplot(px, py, label="Agent " + str(agentList[0].id)).set(title='Path of Agnets', xlabel="X", ylabel="Y")
     sns.lineplot(pxt, pyt, label="Agent " + str(agentList[1].id))
     plt.savefig(logPath + "pathCombine" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.plot(distAgent[0], color='b')
-    # plt.plot(distAgent[1], color='r')
     sns.lineplot(data=distAgent[0]).set(title='Distance Between Agnets', xlabel="X", ylabel="distance")
     plt.savefig(logPath + "distAgent_100_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.plot(info[agentList[0].id][0], color='b')
-    # plt.plot(info[agentList[0].id][1], color='r')
-    # plt.plot(info[agentList[0].id][2], color='g')
-    # plt.plot(info[agentList[0].id][3], color='y')
     sns.lineplot(data=info[agentList[0].id][0], label="toward goal").set(title='Rewards Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
     sns.lineplot(data=info[agentList[0].id][1], label="from line")
     sns.lineplot(data=info[agentList[0].id][2], label="collision")
@@ -66,11 +50,6 @@ def loggerMid(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     plt.savefig(logPath + "Reward_Agent_0_100_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.plot(info[agentList[1].id][0], color='b')
-    # plt.plot(info[agentList[1].id][1], color='r')
-    # plt.plot(info[agentList[1].id][2], color='g')
-    # plt.plot(info[agentList[1].id][3], color='y')
     sns.lineplot(data=info[agentList[1].id][0], label="toward goal").set(title='Rewards Agnet ' + str(agentList[1].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
     sns.lineplot(data=info[agentList[1].id][1], label="from line")
     sns.lineplot(data=info[agentList[1].id][2], label="collision")
@@ -78,20 +57,10 @@ def loggerMid(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     plt.savefig(logPath + "Reward_Agent_1_100_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("Actor Loss of Agnets")
-    # plt.xlabel("x")
-    # plt.ylabel("value")
-    # plt.plot(agentList[0].actorLoss, color='r')
     sns.lineplot(data=agentList[0].actorLoss, label="loss").set(title='Actor Loss of Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
     plt.savefig(logPath + "ActorLoss_Agent0_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("Actor Loss of Agnets")
-    # plt.xlabel("x")
-    # plt.ylabel("value")
-    # plt.plot(agentList[1].actorLoss, color='r')
     sns.lineplot(data=agentList[1].actorLoss, label="loss").set(title='Actor Loss of Agnet ' + str(agentList[1].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
     plt.savefig(logPath + "ActorLoss_Agent1_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     plt.close("all")
@@ -104,61 +73,27 @@ def loggerEnd(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     print(f"maxDistfromPath: {maxDistfromPath}, maxDistfromPathPerEpisode: {maxDistfromPathPerEpisode}")
     print(f"max Colision {np.sum(info[0][4])}")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("Total Average Score")
-    # plt.xlabel("step")
-    # plt.ylabel("value")
-    # plt.plot(total_avg_score)
     sns.lineplot(data=total_avg_score).set(title='Total Average Score', xlabel="step", ylabel="value")
     plt.savefig(logPath + "end_episode_total_avg_score_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("total Score")
-    # plt.xlabel("totals steps")
-    # plt.ylabel("value")
-    # plt.plot(totalScore)
     sns.lineplot(data=totalScore).set(title='Total Score', xlabel="step", ylabel="value")
     plt.savefig(logPath + "end_episode_totalScore_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("Episode Score")
-    # plt.xlabel("step")
-    # plt.ylabel("value")
-    # plt.plot(episodeScore)
     sns.lineplot(data=episodeScore).set(title='Episode' + str(i) + ' Score', xlabel="step", ylabel="value")
     plt.savefig(logPath + "end_episode_episodeScore_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("Path of Agents")
-    # plt.xlabel("x")
-    # plt.ylabel("y")
-    # plt.plot(px, py, color='b', label='A1')
-    # plt.plot(pxt, pyt, color='k', label='A2')
     sns.lineplot(px, py, label="Agent " + str(agentList[0].id)).set(title='Path of Agnets', xlabel="X", ylabel="Y")
     sns.lineplot(pxt, pyt, label="Agent " + str(agentList[1].id))
     plt.savefig(logPath + "end_episode_pathCombine_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("Distance Between Agents")
-    # plt.xlabel("x")
-    # plt.ylabel("y")
-    # plt.plot(distAgent[0], color='b')
-    # plt.plot(distAgent[1], color='r')
     sns.lineplot(data=distAgent[0]).set(title='Distance Between Agnets', xlabel="X", ylabel="distance")
     plt.savefig(logPath + "end_episode_distAgent_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("Reward Agent 1")
-    # plt.xlabel("steps")
-    # plt.ylabel("values")
-    # plt.plot(info[agentList[0].id][0], color='b' , label="Going Forward") 
-    # plt.plot(info[agentList[0].id][1], color='r', label="From Line")
-    # plt.plot(info[agentList[0].id][3], color='y', label="Going Left")
     sns.lineplot(data=info[agentList[0].id][0], label="toward goal").set(title='Rewards Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
     sns.lineplot(data=info[agentList[0].id][1], label="from line")
     sns.lineplot(data=info[agentList[0].id][2], label="collision")
@@ -166,13 +101,6 @@ def loggerEnd(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     plt.savefig(logPath + "end_episode_R_Agent_" + str(agentList[0].id)+ "_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     plt.close("all")
 
-    # plt.figure(figsize=(16, 10))
-    # plt.title("Reward Agent 2")
-    # plt.xlabel("steps")
-    # plt.ylabel("values")
-    # plt.plot(info[agentList[1].id][0], color='b', label="Going Forward")
-    # plt.plot(info[agentList[1].id][1], color='r',  label="From Line")
-    # plt.plot(info[agentList[1].id][3], color='y', label="Going Left")
     sns.lineplot(data=info[agentList[1].id][0], label="toward goal").set(title='Rewards Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
     sns.lineplot(data=info[agentList[1].id][1], label="from line")
     sns.lineplot(data=info[agentList[1].id][2], label="collision")
@@ -180,10 +108,17 @@ def loggerEnd(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     plt.savefig(logPath + "end_episode_R_Agent_" + str(agentList[1].id)+ "_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     plt.close("all")
 
+    sns.lineplot(data=agentList[0].actorLoss, label="loss").set(title='Actor Loss of Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
+    plt.savefig(logPath + "ActorLoss_Agent0_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
+    plt.close("all")
+
+    sns.lineplot(data=agentList[1].actorLoss, label="loss").set(title='Actor Loss of Agnet ' + str(agentList[1].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
+    plt.savefig(logPath + "ActorLoss_Agent1_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
+    plt.close("all")
+
     with open(logPath + "end_episode_actionList" + str(i) + ".txt", 'w') as f:
         for aa in actionsListEpisode:
             f.write("%s\n" % aa)
-
 
 if __name__ == '__main__':
     x = 58000 * 1.62 # 1.3
