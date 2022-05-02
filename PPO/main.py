@@ -188,7 +188,7 @@ def loggerEnd(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
 if __name__ == '__main__':
     x = 58000 * 1.62 # 1.3
     y = 58000 * 1.62
-    deltaT = 0.1
+    deltaT = 0.5
     arrival = 0
     agnetNumber = 2
     counter = 0
