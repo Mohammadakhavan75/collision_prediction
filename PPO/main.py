@@ -134,7 +134,7 @@ if __name__ == '__main__':
     mean_episode_score = []
     actionsListEpisode=[]
     LoggerOn = True
-    LoggerMidOn = True
+    LoggerMidOn = False
     ismanouver = False
     breakEpisode = False
     maxDistfromPath = 0
@@ -167,8 +167,8 @@ if __name__ == '__main__':
         maxDistfromPathPerEpisode = 0
         breakEpisode = False
         TTCValue = False
-        for ag in agentList:
-            print(ag.getAttr())
+        # for ag in agentList:
+        #     print(ag.getAttr())
 
         while not all(done) and not breakEpisode:
             counter += 1
@@ -198,7 +198,7 @@ if __name__ == '__main__':
                         observation_ = [ob/x for ob in observation_]
                         agent.store_transition(observation, action, prob, val, reward, done[0])
                         if stepCounter % N == 0:
-                            # print(f"start learning in step: {stepCounter}")
+                            # print(f"**********************\n********************\nstart learning in step: {stepCounter}\n**********************\n********************")
                             agent.learn()
                             learn_iters += 1
                             
@@ -243,17 +243,32 @@ if __name__ == '__main__':
                 else:
                     done[agent.id] = True
 
+                # if agent.angle > 6:
+                    # # breakEpisode = True
+                    # # action, prob, val = agent.choose_action(observation)
+                    # # observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
+                    # # reward = -10
+                    # # observation_ = [ob/x for ob in observation_]
+                    # # agent.store_transition(observation, action, prob, val, reward, done[0])
+                    # # agent.learn()
+                    # # observation = observation_
+                    # print("agent going too right!")
                 if agent.outofBound():
                     breakEpisode = True
-                    action, prob, val = agent.choose_action(observation)
+                    # action, prob, val = agent.choose_action(observation)
+                    print(f"agent attribute is: {agent.getAttr()}")
                     observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
-                    reward = -1000
+                    reward = -100000
                     observation_ = [ob/x for ob in observation_]
                     agent.store_transition(observation, action, prob, val, reward, done[0])
                     agent.learn()
+                    observation = observation_
 
                     print("agent goes out of bound!")
 
+                if stepCounter > 3000:
+                    breakEpisode = True
+                    print("break of timeout!")
                 # if score[j] < -100000:
                 #     print("agent score goes lower than -100000")
                 #     breakEpisode = True

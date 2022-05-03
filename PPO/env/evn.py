@@ -94,7 +94,7 @@ class Env():
         rewardFinal = 1000 # 1000
         rewardTowardGoalConst = 0.0001
         rewardCollision = -10000 # -1000
-        rewardLeft = -10 # -10
+        rewardLeft = -1 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
         R_c = 1.5
@@ -129,14 +129,15 @@ class Env():
             rr = np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)  - np.sqrt((agent.xPos - agent.xDest) ** 2 + (agent.yPos - agent.yDest) ** 2)
             rere = 1/(1 + np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)) * rr
             returnReward += rere
+            # print(f"rere: {rere}")
             # returnReward -= rere
             rewardsList[agent.id][0].append(rere)
         # else:
             # rewardsList[agent.id][0].append(0)
 
-            """
-                2- Heading error and Cross Error reward
-            """
+        """
+            2- Heading error and Cross Error reward
+        """
 
         # if not agent.checkArrival() and lastDist <= agent.distfromAgent(target):
         if not agent.checkArrival():
@@ -146,13 +147,16 @@ class Env():
                 R_Heading = np.exp(-k_c * np.abs(deltaSId))
             else:
                 R_Heading = -1
+                # print(f"else R_Heading: {R_Heading}")
             
             if np.abs(da) > np.abs(agent.distfromAgent(target)):
                 R_Cross = -k_d * np.abs(agent.distfromPathLine())
             else:
                 R_Cross = -1
+                # print(f"else R_Cross: {R_Cross}")
 
             R_Speed = np.exp(-k_v * np.abs(deltaUp))
+            # print(f"else R_Speed: {R_Speed}")
 
             # rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromOriginalLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
             # rHeadingCross2 = discounter * np.exp(-k_d * np.abs(agent.distfromPathLine())) + discounter * np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + discounter * np.exp(-k_v * np.abs(deltaUp)) - R_c
@@ -164,8 +168,6 @@ class Env():
             # returnReward -= rHeadingCross3
             rewardsList[agent.id][1].append(rHeadingCross3)
             # print(f"agnet ID: {agent.id}, rHeadingCross3: {rHeadingCross3}")
-        else:
-            rewardsList[agent.id][1].append(0)
 
         """
             B) Collision Avoidance Reward function
