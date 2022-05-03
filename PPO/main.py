@@ -187,7 +187,7 @@ if __name__ == '__main__':
                     # print(agent.sensor(agentList, ismanouver))
                     if not TTCValue and all(agent.sensor(agentList)):
                         TTCValue = True
-                    if TTCValue:
+                    if TTCValue and agent.id == 0:
                         action, prob, val = agent.choose_action(observation)
                         # if agent.id == 0:
                         #     print(f"action: {action}, action_value: {world.angleBoundryCat[action]}, angle+action: {agent.angle + world.angleBoundryCat[action]}", end=' ')
