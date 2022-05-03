@@ -133,7 +133,7 @@ if __name__ == '__main__':
     total_avg_score = []
     mean_episode_score = []
     actionsListEpisode=[]
-    LoggerOn = False
+    LoggerOn = True
     ismanouver = False
     breakEpisode = False
     maxDistfromPath = 0
@@ -177,8 +177,8 @@ if __name__ == '__main__':
 
             totalTime += deltaT
             for j, agent in enumerate(agentList):
-                if agent.id == 0:
-                    print(f"\n ID: {agent.id}, Angle: {agent.angle}", end=' ')
+                # if agent.id == 0:
+                    # print(f"\n ID: {agent.id}, Angle: {agent.angle}", end=' ')
                 if not agent.checkArrival():
                     if agent.id == agentList[0].id:
                         target = agentList[1]
@@ -189,11 +189,11 @@ if __name__ == '__main__':
                         TTCValue = True
                     if TTCValue:
                         action, prob, val = agent.choose_action(observation)
-                        if agent.id == 0:
-                            print(f"action: {world.angleBoundryCat[action]}, angle+action: {agent.angle + world.angleBoundryCat[action]}", end=' ')
+                        # if agent.id == 0:
+                        #     print(f"action: {action}, action_value: {world.angleBoundryCat[action]}, angle+action: {agent.angle + world.angleBoundryCat[action]}", end=' ')
                         observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
-                        if agent.id == 0:
-                            print(f"new angle: {agent.angle}")
+                        # if agent.id == 0:
+                        #     print(f"new angle: {agent.angle}")
                         observation_ = [ob/x for ob in observation_]
                         agent.store_transition(observation, action, prob, val, reward, done[0])
                         if stepCounter % N == 0:

@@ -6,7 +6,7 @@ from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow_probability as tfp
 import copy
-
+import random
 import tensorflow.keras as keras
 from .memory import PPOMemory
 from .networks import ActorNetwork, CriticNetwork
@@ -38,6 +38,7 @@ class Agent():
         self.logProbs = 0
         self.lastDistance = 0
         self.actorLoss = []
+        self.actionAble = [_ for _ in range(n_actions)]
 
         self.gamma = gamma
         self.policy_clip = policy_clip
@@ -84,12 +85,17 @@ class Agent():
         state = tf.convert_to_tensor([observation])
         probs = self.actor(state)
         dist = tfp.distributions.Categorical(probs)
-        action = dist.sample()
+        # print(f"probs: {probs}, probs.numpy(): {probs.numpy()}")
+        # print(f"probs: {probs[0]}, sum:{np.sum(probs[0])}")
+        # action = np.random.choice(self.actionAble,p=probs[0])
+        action = random.choices(self.actionAble, probs[0])
+        # action = dist.sample()
         log_prob = dist.log_prob(action)
         value = self.critic(state)
-        if self.id==0 :
-            print(f'choose_action\nprobs: {probs}')
-        action = action.numpy()[0]
+        # action = action.numpy()[0]
+        action = action[0]
+        # if self.id==0 :
+        #     print(f'\naction: {action}, probs: {probs}')
         value = value.numpy()[0]
         log_prob = log_prob.numpy()[0]
 
