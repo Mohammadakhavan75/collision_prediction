@@ -244,17 +244,12 @@ if __name__ == '__main__':
 
                 if agent.outofBound():
                     breakEpisode = True
-                    # for ag in agentList:
-                    #     if ag.id == agentList[0].id:
-                    #         target = agentList[1]
-                    #     else:
-                    #         target = agentList[0]
-                    #     action, prob, val = ag.choose_action(observation)
-                    #     observation_, reward, ـ, info = world.step(action, ag, target, deltaT, ismanouver, rewardsList, totalTime)
-                    #     reward = -10000
-                    #     observation_ = [ob/x for ob in observation_]
-                    #     ag.store_transition(observation, action, prob, val, reward, done[0])
-                    #     ag.learn()
+                    action, prob, val = agent.choose_action(observation)
+                    observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
+                    reward = -1000
+                    observation_ = [ob/x for ob in observation_]
+                    agent.store_transition(observation, action, prob, val, reward, done[0])
+                    agent.learn()
 
                     print("agent goes out of bound!")
 
