@@ -134,6 +134,7 @@ if __name__ == '__main__':
     mean_episode_score = []
     actionsListEpisode=[]
     LoggerOn = True
+    LoggerMidOn = True
     ismanouver = False
     breakEpisode = False
     maxDistfromPath = 0
@@ -172,7 +173,7 @@ if __name__ == '__main__':
         while not all(done) and not breakEpisode:
             counter += 1
             stepCounter += 1
-            if stepCounter % 100 == 0 and LoggerOn:
+            if stepCounter % 100 == 0 and LoggerMidOn:
                 loggerMid(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfromPath, maxDistfromPathPerEpisode)
 
             totalTime += deltaT
