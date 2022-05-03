@@ -53,7 +53,8 @@ class Env():
             # changedAccel = self.accelerationBoundryCat[action['accel'].numpy()]
             # changedAngle = self.angleBoundryCat[action['angle'].numpy()]
             changedAccel = 0
-            changedAngle = self.angleBoundryCat[action.numpy()]
+            # changedAngle = self.angleBoundryCat[action.numpy()]
+            changedAngle = self.angleBoundryCat[action]
             # print(f"changedAccel: {changedAccel}, changedAngle: {changedAngle}")
             agent.maneuverMove(agent.angle, agent.nonVectoralSpeed, changedAngle, changedAccel, deltaT)
             # agent.updateAcceleration(agent.angle, agent.nonVectoralSpeed, changedAngle, changedAccel, deltaT)
@@ -110,84 +111,87 @@ class Env():
         Vp = [agent.firstSpeed['vx'], agent.firstSpeed['vy']]
         da = np.linalg.norm(Va) - (np.dot(Va, Vt)/np.linalg.norm(Va))
         Vox = [agent.speed['vx'], 0]
-        SId = np.arccos(np.dot([agent.speed['vx'], agent.speed['vy']], Vox)/(np.linalg.norm([agent.speed['vx'], agent.speed['vy']]) * np.linalg.norm(Vox)))
+        SId = np.arccos(np.dot(Vp, Vpx)/(np.linalg.norm(Vp) * np.linalg.norm(Vpx)))
         deltaSId = np.arccos(np.dot([agent.speed['vx'], agent.speed['vy']], [agent.firstSpeed['vx'], agent.firstSpeed['vy']])/(np.linalg.norm([agent.speed['vx'], agent.speed['vy']]) * np.linalg.norm([agent.firstSpeed['vx'], agent.firstSpeed['vy']])))
         
-        """
-            A) Path following Reward function:
-                1- Goal reward
-        """
+        # """
+        #     A) Path following Reward function:
+        #         1- Goal reward
+        # """
 
-        if agent.checkArrival():
-            print("reward arrival")
-            returnReward += rewardFinal
-            # returnReward -= rewardFinal
-        # elif lastDist <= agent.distfromAgent(target):
-        else:
-            # print(f"lastDist < agent.distfromAgent(target) {lastDist < agent.distfromAgent(target)}, lastDist: {lastDist},  agent.distfromAgent(target), {agent.distfromAgent(target)}")
-            rr = np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)  - np.sqrt((agent.xPos - agent.xDest) ** 2 + (agent.yPos - agent.yDest) ** 2)
-            rere = 1/(1 + np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)) * rr
-            returnReward += rere
-            # returnReward -= rere
-            rewardsList[agent.id][0].append(rere)
+        # if agent.checkArrival():
+        #     print("reward arrival")
+        #     returnReward += rewardFinal
+        #     # returnReward -= rewardFinal
+        # # elif lastDist <= agent.distfromAgent(target):
         # else:
-            # rewardsList[agent.id][0].append(0)
+        #     # print(f"lastDist < agent.distfromAgent(target) {lastDist < agent.distfromAgent(target)}, lastDist: {lastDist},  agent.distfromAgent(target), {agent.distfromAgent(target)}")
+        #     rr = np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)  - np.sqrt((agent.xPos - agent.xDest) ** 2 + (agent.yPos - agent.yDest) ** 2)
+        #     rere = 1/(1 + np.sqrt((agent.xbPos - agent.xDest) ** 2 + (agent.ybPos - agent.yDest) ** 2)) * rr
+        #     returnReward += rere
+        #     # returnReward -= rere
+        #     rewardsList[agent.id][0].append(rere)
+        # # else:
+        #     # rewardsList[agent.id][0].append(0)
 
-            """
-                2- Heading error and Cross Error reward
-            """
+        #     """
+        #         2- Heading error and Cross Error reward
+        #     """
 
-        # if not agent.checkArrival() and lastDist <= agent.distfromAgent(target):
-        if not agent.checkArrival():
-            # print("reward Heading") 
+        # # if not agent.checkArrival() and lastDist <= agent.distfromAgent(target):
+        # if not agent.checkArrival():
+        #     # print("reward Heading") 
             
-            if np.abs(deltaSId) < np.abs(SId):
-                R_Heading = np.exp(-k_c * np.abs(deltaSId))
-            else:
-                R_Heading = -1
+        #     if np.abs(deltaSId) < np.abs(SId):
+        #         R_Heading = np.exp(-k_c * np.abs(deltaSId))
+        #     else:
+        #         R_Heading = -1
             
-            if np.abs(da) > np.abs(agent.distfromAgent(target)):
-                R_Cross = -k_d * np.abs(agent.distfromPathLine())
-            else:
-                R_Cross = -1
+        #     if np.abs(da) > np.abs(agent.distfromAgent(target)):
+        #         R_Cross = -k_d * np.abs(agent.distfromPathLine())
+        #     else:
+        #         R_Cross = -1
 
-            R_Speed = np.exp(-k_v * np.abs(deltaUp))
+        #     R_Speed = np.exp(-k_v * np.abs(deltaUp))
 
-            # rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromOriginalLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
-            # rHeadingCross2 = discounter * np.exp(-k_d * np.abs(agent.distfromPathLine())) + discounter * np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + discounter * np.exp(-k_v * np.abs(deltaUp)) - R_c
-            rHeadingCross3 = R_Cross + R_Heading + R_Speed
+        #     # rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromOriginalLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+        #     # rHeadingCross2 = discounter * np.exp(-k_d * np.abs(agent.distfromPathLine())) + discounter * np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + discounter * np.exp(-k_v * np.abs(deltaUp)) - R_c
+        #     rHeadingCross3 = R_Cross + R_Heading + R_Speed
 
-            # if agent.distfromPathLine() > 1:
-            #     rHeadingCross2 -= np.log(agent.distfromPathLine())/np.log(10)
-            returnReward += rHeadingCross3
-            # returnReward -= rHeadingCross3
-            rewardsList[agent.id][1].append(rHeadingCross3)
-            # print(f"agnet ID: {agent.id}, rHeadingCross3: {rHeadingCross3}")
-        else:
-            rewardsList[agent.id][1].append(0)
+        #     # if agent.distfromPathLine() > 1:
+        #     #     rHeadingCross2 -= np.log(agent.distfromPathLine())/np.log(10)
+        #     returnReward += rHeadingCross3
+        #     # returnReward -= rHeadingCross3
+        #     rewardsList[agent.id][1].append(rHeadingCross3)
+        #     # print(f"agnet ID: {agent.id}, rHeadingCross3: {rHeadingCross3}")
+        # else:
+        #     rewardsList[agent.id][1].append(0)
 
-        """
-            B) Collision Avoidance Reward function
-        """
+        # """
+        #     B) Collision Avoidance Reward function
+        # """
 
-        # if agent.distfromAgent(target) < agent.acceptableDist and ismanouver:
-        if agent.distfromAgent(target) < agent.acceptableDist:
-            # print("reward dist from agent is low", agent.distfromAgent(target))
-            returnReward += rewardCollision * 1/agent.distfromAgent(target)
-            # returnReward -= rewardCollision * 1/agent.distfromAgent(target)
-            rewardsList[agent.id][2].append(rewardCollision * 1/agent.distfromAgent(target))
-            rewardsList[agent.id][4].append(1)
-        else:
-            rewardsList[agent.id][2].append(0)
-            rewardsList[agent.id][4].append(0)
+        # # if agent.distfromAgent(target) < agent.acceptableDist and ismanouver:
+        # if agent.distfromAgent(target) < agent.acceptableDist:
+        #     # print("reward dist from agent is low", agent.distfromAgent(target))
+        #     returnReward += rewardCollision * 1/agent.distfromAgent(target)
+        #     # returnReward -= rewardCollision * 1/agent.distfromAgent(target)
+        #     rewardsList[agent.id][2].append(rewardCollision * 1/agent.distfromAgent(target))
+        #     rewardsList[agent.id][4].append(1)
+        # else:
+        #     rewardsList[agent.id][2].append(0)
+        #     rewardsList[agent.id][4].append(0)
 
-        if agent.angleFromPathLine():
-            returnReward += rewardLeft
-            # returnReward -= rewardLeft
-            rewardsList[agent.id][3].append(rewardLeft/10)
-        else:
-            rewardsList[agent.id][3].append(0)
-
+        # if agent.angleFromPathLine():
+        #     returnReward += rewardLeft
+        #     # returnReward -= rewardLeft
+        #     rewardsList[agent.id][3].append(rewardLeft/10)
+        # else:
+        #     rewardsList[agent.id][3].append(0)
+        if action != None:
+            if action != 2:
+                # print(f"action was: {action}")
+                returnReward = -0.1
 
         return returnReward
         

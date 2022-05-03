@@ -82,25 +82,17 @@ class Agent():
 
     def choose_action(self, observation):
         state = tf.convert_to_tensor([observation])
-
         probs = self.actor(state)
-        dist = tfp.distributions.Categorical(probs[0][:9])
-        # dist_angle = tfp.distributions.Categorical(probs[0][:9])
-        # dist_accel = tfp.distributions.Categorical(probs[0][9:])
+        dist = tfp.distributions.Categorical(probs)
         action = dist.sample()
-        # action_accel = dist_accel.sample()
-        # action_angle = dist_angle.sample()
         log_prob = dist.log_prob(action)
-        # log_prob_accel = dist_accel.log_prob(action_accel)
-        # log_prob_angle = dist_angle.log_prob(action_angle)
-
         value = self.critic(state)
-
+        if self.id==0 :
+            print(f'choose_action\nprobs: {probs}')
+        action = action.numpy()[0]
         value = value.numpy()[0]
-        # action = {'accel': action_accel, 'angle': action_angle}
-        # log_prob = {'accel': log_prob_accel, 'angle': log_prob_angle}
-        # log_prob = (log_prob_accel + log_prob_angle)/2
-        
+        log_prob = log_prob.numpy()[0]
+
         return action, log_prob, value
 
     def learn(self):
@@ -132,8 +124,8 @@ class Agent():
                     # actions_accel = tf.convert_to_tensor([ac['accel'] for ac in action_arr[batch]])
                     # actions_angle = tf.convert_to_tensor([ac['angle'] for ac in action_arr[batch]])
                     probs = self.actor(states)
-                    # if self.id==0:
-                    #     print(f'\n\nbatch spliter\nprobs: {probs}')
+                    # if self.id==0 :
+                    #     print(f'\nbatch mode\nprobs: {probs}')
                     dist = tfp.distributions.Categorical(probs)
                     new_probs = dist.log_prob(actions)
                     # print(f"actions: {actions},\nnew_probs: {new_probs}\n\n")
@@ -153,9 +145,10 @@ class Agent():
                     # print(f"prob_ratio: {prob_ratio}, self.policy_clip: {self.policy_clip}, clipped_probs: {list(set(list(clipped_probs.numpy())) - set(list(prob_ratio.numpy())))}")
                     weighted_clipped_probs = clipped_probs * advantage[batch]
                     actor_loss = -tf.math.minimum(weighted_probs,
-                                                  weighted_clipped_probs)      
+                                                  weighted_clipped_probs)      # -
                     actor_loss = tf.math.reduce_mean(actor_loss)
-                    # print(f'actor_loss: {actor_loss.numpy()}, diff_in_probs: {list(set(list(weighted_probs.numpy())) - set(list(weighted_clipped_probs.numpy())))}')
+                    # if self.id == 0:
+                    #     print(f'actor_loss: {actor_loss.numpy()}, diff_in_probs: {list(set(list(weighted_probs.numpy())) - set(list(weighted_clipped_probs.numpy())))}')
                     returns = advantage[batch] + values[batch]
                     critic_loss = keras.losses.MSE(critic_value, returns)
 
@@ -163,6 +156,10 @@ class Agent():
                 # critic_loss = [-cl for cl in critic_loss]
                 
                 actor_params = self.actor.trainable_variables
+                # if self.id==0 :
+                #     print(f"actor_params: {actor_params[-1].numpy()}") #, probs: {probs}, new_probs: {new_probs}")
+                    # print(f"self.actor.trainable_variables: {self.actor.trainable_variables}")
+                    # quit()
                 actor_grads = tape.gradient(actor_loss, actor_params)
                 critic_params = self.critic.trainable_variables
                 critic_grads = tape.gradient(critic_loss, critic_params)
@@ -172,6 +169,8 @@ class Agent():
                         zip(critic_grads, critic_params))
         # print(f"actor params: {actor_params[-1].numpy()}")
         # print(f"actor_loss: {actor_loss}, critic_loss: {critic_loss}\n")
+        # if self.id == 0:
+        #     print(f"actor_loss: {actor_loss}\n\n")
         self.actorLoss.append(actor_loss.numpy())
         self.memory.clear_memory()
 
@@ -335,34 +334,24 @@ class Agent():
     def TTCMv2(self):
         pass
 
-    def sensor(self, agents, ismanouver):
+    def sensor(self, agents):
         sensorAlarm=[]
         for target in agents:
             if self.id == target.id:
                 continue
             else:
-                # if ismanouver:
-                #     Dist = self.distfromAgent(target)
-                #     ttc = self.TTCM(target)
-                # else:
-                if True:
-                    Dist = self.distfromAgent(target)
-                    ttc = self.TTCD(target)
-                    # print(f"ttc {ttc}, Dist, {Dist}")
+                Dist = self.distfromAgent(target)
+                ttc = self.TTCD(target)
+                # print(f"ttc {ttc}, Dist, {Dist}")
                 if not bool(ttc):
                     sensorAlarm.append(False)
-                    break
                 elif ttc[0].is_real:
                     if self.acceptableDist > Dist or ttc[0] < self.timetoManouver:
                         sensorAlarm.append(True)
-                        break
                     else:
                         sensorAlarm.append(False)
-                        break
                 else:
                     sensorAlarm.append(False)
-                    break
-
         return sensorAlarm
 
     def directMove(self, deltaT):
@@ -376,23 +365,21 @@ class Agent():
             Si = Si - 2 * np.pi
         if Si < 0:
             Si = Si + 2 * np.pi
-        self.accel['ax'] = g * np.cos(Si) + u * omega * np.sin(Si)
-        self.accel['ay'] = g * np.sin(Si) - u * omega * np.cos(Si)
         # if self.id == 0:
-        #     print(f"g: {g}, omega: {omega}, u: {u}, Si: {Si}, self.accel: {self.accel}")
+        #     print(f"g: {g}, omega: {omega}, u: {u}, Si: {Si}")
         self.nonVectoralSpeed = u
         self.angle = Si
 
     def updateSpeed(self, Si, u):
-        self.speed['vx'] = np.cos(Si) * u
-        self.speed['vy'] = np.sin(Si) * u
+        return np.cos(Si) * u, np.sin(Si) * u
 
     def maneuverMove(self, angle, nonVectoralSpeed, changedAngle, changedAccel, deltaT):
         # print(f"ID: {self.id}, angle: {angle}")
         self.updateAcceleration(angle, nonVectoralSpeed , changedAngle, changedAccel, deltaT)
-        self.xPos = self.xPos + self.speed['vx'] * deltaT + 0.5 * self.accel['ax'] * (deltaT ** 2)
-        self.yPos = self.yPos + self.speed['vy'] * deltaT + 0.5 * self.accel['ay'] * (deltaT ** 2)
-        self.updateSpeed(angle, nonVectoralSpeed)
+        newXspeed, newYspeed = self.updateSpeed(angle, nonVectoralSpeed)
+        self.xPos = self.xPos + 0.5 * (self.speed['vx'] + newXspeed) * deltaT
+        self.yPos = self.yPos + 0.5 * (self.speed['vy'] + newYspeed) * deltaT
+        self.speed['vx'], self.speed['vy'] = newXspeed, newYspeed 
 
     def angleFromOriginalLine(self):
         distance = [self.xPos - self.firstPosX, self.yPos - self.firstPosX]

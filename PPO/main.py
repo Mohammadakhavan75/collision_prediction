@@ -101,7 +101,7 @@ def loggerEnd(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     plt.savefig(logPath + "end_episode_R_Agent_" + str(agentList[0].id)+ "_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     plt.close("all")
 
-    sns.lineplot(data=info[agentList[1].id][0], label="toward goal").set(title='Rewards Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
+    sns.lineplot(data=info[agentList[1].id][0], label="toward goal").set(title='Rewards Agnet ' + str(agentList[1].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
     sns.lineplot(data=info[agentList[1].id][1], label="from line")
     sns.lineplot(data=info[agentList[1].id][2], label="collision")
     sns.lineplot(data=info[agentList[1].id][3], label="going left")
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     total_avg_score = []
     mean_episode_score = []
     actionsListEpisode=[]
-    LoggerOn = True
+    LoggerOn = False
     ismanouver = False
     breakEpisode = False
     maxDistfromPath = 0
@@ -155,7 +155,7 @@ if __name__ == '__main__':
         print("episode %f started!", i)
         done=[False for _ in agentList]
         observation, agentList = world.reset(agentList)
-        # observation = [ob/x for ob in observation]
+        observation = [ob/x for ob in observation]
         episodeScore = []
         actionsListEpisode = [[],[]]
         outputofModel = []
@@ -165,32 +165,39 @@ if __name__ == '__main__':
         stepCounter = 0
         maxDistfromPathPerEpisode = 0
         breakEpisode = False
-        manouverStarted = False
+        TTCValue = False
         for ag in agentList:
             print(ag.getAttr())
 
         while not all(done) and not breakEpisode:
             counter += 1
             stepCounter += 1
-            if stepCounter % 100 == 0:
+            if stepCounter % 100 == 0 and LoggerOn:
                 loggerMid(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfromPath, maxDistfromPathPerEpisode)
 
             totalTime += deltaT
             for j, agent in enumerate(agentList):
+                if agent.id == 0:
+                    print(f"\n ID: {agent.id}, Angle: {agent.angle}", end=' ')
                 if not agent.checkArrival():
                     if agent.id == agentList[0].id:
                         target = agentList[1]
                     else:
                         target = agentList[0]
-
-                    if all(agent.sensor(agentList, ismanouver)):
-                        ismanouver = True
-                        manouverStarted = True
+                    # print(agent.sensor(agentList, ismanouver))
+                    if not TTCValue and all(agent.sensor(agentList)):
+                        TTCValue = True
+                    if TTCValue:
                         action, prob, val = agent.choose_action(observation)
+                        if agent.id == 0:
+                            print(f"action: {world.angleBoundryCat[action]}, angle+action: {agent.angle + world.angleBoundryCat[action]}", end=' ')
                         observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
-                        # observation_ = [ob/x for ob in observation_]
+                        if agent.id == 0:
+                            print(f"new angle: {agent.angle}")
+                        observation_ = [ob/x for ob in observation_]
                         agent.store_transition(observation, action, prob, val, reward, done[0])
                         if stepCounter % N == 0:
+                            # print(f"start learning in step: {stepCounter}")
                             agent.learn()
                             learn_iters += 1
                             
@@ -219,7 +226,7 @@ if __name__ == '__main__':
                         ismanouver = False
                         action = None
                         observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
-                        # observation_ = [ob/x for ob in observation_]
+                        observation_ = [ob/x for ob in observation_]
                         score[j] += reward
                         observation = observation_
 
