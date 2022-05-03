@@ -281,7 +281,7 @@ class Agent():
         self.actorLoss = []
 
     def getAttr(self):
-        return {'firstPosX': {self.firstPosX}, 'firstPosY': {self.firstPosY}, 'xPos': self.xPos, 'yPos': self.yPos, 'xDest': self.xDest, 'yDest': self.yDest,
+        return {'firstPosX': self.firstPosX, 'firstPosY': self.firstPosY, 'xPos': self.xPos, 'yPos': self.yPos, 'xDest': self.xDest, 'yDest': self.yDest,
             'speed': self.speed, 'accel': self.accel, 'Slope': self.slope, 'widthofOrigin': self.widthofOrigin}
 
     def checkArrival(self):
