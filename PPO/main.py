@@ -258,10 +258,11 @@ if __name__ == '__main__':
                     # action, prob, val = agent.choose_action(observation)
                     print(f"agent attribute is: {agent.getAttr()}")
                     observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
-                    reward = -100000
+                    reward = -1000
+                    rewardsList[agent.id][1].append(reward/100)
                     observation_ = [ob/x for ob in observation_]
                     agent.store_transition(observation, action, prob, val, reward, done[0])
-                    agent.learn()
+                    agent.learn(outofbound_loss=reward)
                     observation = observation_
 
                     print("agent goes out of bound!")

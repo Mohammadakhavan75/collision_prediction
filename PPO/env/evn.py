@@ -93,7 +93,7 @@ class Env():
         returnReward = 0
         rewardFinal = 1000 # 1000
         rewardTowardGoalConst = 0.0001
-        rewardCollision = -10000 # -1000
+        rewardCollision = -1000 # -1000
         rewardLeft = -1 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
@@ -145,23 +145,26 @@ class Env():
             
             if np.abs(deltaSId) < np.abs(SId):
                 R_Heading = np.exp(-k_c * np.abs(deltaSId))
+                # print(f"R_Heading: {R_Heading}, deltaSId: {deltaSId}")
             else:
                 R_Heading = -1
                 # print(f"else R_Heading: {R_Heading}")
             
             if np.abs(da) > np.abs(agent.distfromAgent(target)):
                 R_Cross = -k_d * np.abs(agent.distfromPathLine())
+                # print(f"R_Cross: {R_Cross}, deltaSId: {agent.distfromPathLine()}")
             else:
                 R_Cross = -1
                 # print(f"else R_Cross: {R_Cross}")
 
             R_Speed = np.exp(-k_v * np.abs(deltaUp))
+            # print(f"R_Speed: {R_Speed}, deltaUp: {deltaUp}")
             # print(f"else R_Speed: {R_Speed}")
 
             # rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromOriginalLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
             # rHeadingCross2 = discounter * np.exp(-k_d * np.abs(agent.distfromPathLine())) + discounter * np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + discounter * np.exp(-k_v * np.abs(deltaUp)) - R_c
             rHeadingCross3 = R_Cross + R_Heading + R_Speed
-
+            # print(f"rHeadingCross3: {rHeadingCross3}")
             # if agent.distfromPathLine() > 1:
             #     rHeadingCross2 -= np.log(agent.distfromPathLine())/np.log(10)
             returnReward += rHeadingCross3
@@ -176,9 +179,11 @@ class Env():
         # if agent.distfromAgent(target) < agent.acceptableDist and ismanouver:
         if agent.distfromAgent(target) < agent.acceptableDist:
             # print("reward dist from agent is low", agent.distfromAgent(target))
-            returnReward += rewardCollision * 1/agent.distfromAgent(target)
+            # returnReward += rewardCollision * 1/agent.distfromAgent(target)
+            returnReward += rewardCollision
             # returnReward -= rewardCollision * 1/agent.distfromAgent(target)
-            rewardsList[agent.id][2].append(rewardCollision * 1/agent.distfromAgent(target))
+            # rewardsList[agent.id][2].append(rewardCollision * 1/agent.distfromAgent(target))
+            rewardsList[agent.id][2].append(rewardCollision)
             rewardsList[agent.id][4].append(1)
         else:
             rewardsList[agent.id][2].append(0)
@@ -187,7 +192,7 @@ class Env():
         if agent.angleFromPathLine():
             returnReward += rewardLeft
             # returnReward -= rewardLeft
-            rewardsList[agent.id][3].append(rewardLeft/10)
+            rewardsList[agent.id][3].append(rewardLeft)
         else:
             rewardsList[agent.id][3].append(0)
         # if action != None:

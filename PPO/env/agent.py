@@ -101,7 +101,7 @@ class Agent():
 
         return action, log_prob, value
 
-    def learn(self):
+    def learn(self, outofbound_loss=0):
         for _ in range(self.n_epochs):
             state_arr, action_arr, old_prob_arr, vals_arr,\
                 reward_arr, dones_arr, batches = \
@@ -152,9 +152,15 @@ class Agent():
                     weighted_clipped_probs = clipped_probs * advantage[batch]
                     actor_loss = -tf.math.minimum(weighted_probs,
                                                   weighted_clipped_probs)      # -
+                    # if self.id == 0:
+                    #     print(f'actor_loss: {actor_loss}')
                     actor_loss = tf.math.reduce_mean(actor_loss)
                     # if self.id == 0:
+                    #     print(f'actor_loss_reduce_mean: {actor_loss}')
+                    # if self.id == 0:
                     #     print(f'actor_loss: {actor_loss.numpy()}, diff_in_probs: {list(set(list(weighted_probs.numpy())) - set(list(weighted_clipped_probs.numpy())))}')
+                    if self.outofBound():
+                        actor_loss += outofbound_loss
                     returns = advantage[batch] + values[batch]
                     critic_loss = keras.losses.MSE(critic_value, returns)
 
