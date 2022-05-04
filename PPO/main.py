@@ -10,7 +10,8 @@ import numpy
 import tensorflow as tf
 import gc
 import seaborn as sns
-
+import warnings
+warnings.filterwarnings('ignore')
 
 tf.config.set_visible_devices([], 'GPU')
 
@@ -243,16 +244,6 @@ if __name__ == '__main__':
                 else:
                     done[agent.id] = True
 
-                # if agent.angle > 6:
-                    # # breakEpisode = True
-                    # # action, prob, val = agent.choose_action(observation)
-                    # # observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
-                    # # reward = -10
-                    # # observation_ = [ob/x for ob in observation_]
-                    # # agent.store_transition(observation, action, prob, val, reward, done[0])
-                    # # agent.learn()
-                    # # observation = observation_
-                    # print("agent going too right!")
                 if agent.outofBound():
                     breakEpisode = True
                     # action, prob, val = agent.choose_action(observation)
