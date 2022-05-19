@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Dense
 
 
 class ActorNetwork(keras.Model):
-    def __init__(self, n_actions, fc1_dims=512, fc2_dims=512, cont=False):
+    def __init__(self, n_actions, fc1_dims=512, fc2_dims=256, cont=False):
         super(ActorNetwork, self).__init__()
 
         self.fc1 = Dense(fc1_dims, activation='relu')
@@ -22,7 +22,7 @@ class ActorNetwork(keras.Model):
 
 
 class CriticNetwork(keras.Model):
-    def __init__(self, fc1_dims=512, fc2_dims=512):
+    def __init__(self, fc1_dims=512, fc2_dims=256):
         super(CriticNetwork, self).__init__()
         self.fc1 = Dense(fc1_dims, activation='relu')
         self.fc2 = Dense(fc2_dims, activation='relu')

@@ -10,11 +10,11 @@ import random
 import tensorflow.keras as keras
 from .memory import PPOMemory
 from .networks import ActorNetwork, CriticNetwork
-
+import itertools
 class Agent():
     def __init__(self, n_actions, gamma=0.99, alpha=0.0001 ,alpha1=0.0002, alpha2=0.003,
                  gae_lambda=0.95, policy_clip=0.2, batch_size=64,
-                 n_epochs=20, chkpt_dir='models/', acceptableDist=9260):
+                 n_epochs=50, chkpt_dir='models/', acceptableDist=9260):
         self.xPos = 0
         self.yPos = 0
         self.xbPos = 0
@@ -33,12 +33,16 @@ class Agent():
         self.nonVectoralSpeed = 205
         self.angle = 0
         self.firstAngle = 0
+        self.maxAngle = 0
         self.nonVectoralAccel = 0
         self.timetoManouver = 300 # 300 # 190
         self.logProbs = 0
         self.lastDistance = 0
-        self.actorLoss = []
-        self.actionAble = [_ for _ in range(n_actions)]
+        self.trainLogs = [[],[],[]]
+        self.temp = 0
+        self.actionAngle_ = [_ for _ in range(5)]
+        self.actionAccel_ = [_ for _ in range(5)]
+        self.collision_occured = False
 
         self.gamma = gamma
         self.policy_clip = policy_clip
@@ -53,10 +57,12 @@ class Agent():
         self.memory = PPOMemory(batch_size)
            
     def store_transition(self, state, action, probs, vals, reward, done):
+        # print(f"saving memroy ID: {self.id}")
         self.memory.store_memory(state, action, probs, vals, reward, done)
 
-    def save_models(self):
+    def save_models(self, path):
         print('... saving models ...')
+        self.chkpt_dir = path
         self.actor.save(self.chkpt_dir + 'actor')
         self.critic.save(self.chkpt_dir + 'critic')
 
@@ -80,89 +86,192 @@ class Agent():
 
     #     return action, log_prob, value
 
+    
+    def actor_loss(self, probs, adv, old_probs, closs):
+        
+        probability = probs      
+        entropy = tf.reduce_mean(tf.math.negative(tf.math.multiply(probability,tf.math.log(probability))))
+        #print(probability)
+        #print(entropy)
+        sur1 = []
+        sur2 = []
+        
+        for pb, t, op in zip(probability, adv, old_probs):
+                        t =  tf.constant(t)
+                        op =  tf.constant(op)
+                        #print(f"t{t}")
+                        #ratio = tf.math.exp(tf.math.log(pb + 1e-10) - tf.math.log(op + 1e-10))
+                        ratio = tf.math.divide(pb,op)
+                        #print(f"ratio{ratio}")
+                        s1 = tf.math.multiply(ratio,t)
+                        #print(f"s1{s1}")
+                        s2 =  tf.math.multiply(tf.clip_by_value(ratio, 1.0 - self.clip_pram, 1.0 + self.clip_pram),t)
+                        #print(f"s2{s2}")
+                        sur1.append(s1)
+                        sur2.append(s2)
+
+        sr1 = tf.stack(sur1)
+        sr2 = tf.stack(sur2)
+        
+        #closs = tf.reduce_mean(tf.math.square(td))
+        loss = tf.math.negative(tf.reduce_mean(tf.math.minimum(sr1, sr2)) - closs + 0.001 * entropy)
+        #print(loss)
+        return loss
 
     def choose_action(self, observation):
         state = tf.convert_to_tensor([observation])
         probs = self.actor(state)
-        dist = tfp.distributions.Categorical(probs)
+        # dist = tfp.distributions.Categorical(probs=probs)
+        distAngle = tfp.distributions.Categorical(probs=probs[0][:5])
+        distAccel = tfp.distributions.Categorical(probs=probs[0][5:])
         # print(f"probs: {probs}, probs.numpy(): {probs.numpy()}")
         # print(f"probs: {probs[0]}, sum:{np.sum(probs[0])}")
         # action = np.random.choice(self.actionAble,p=probs[0])
-        action = random.choices(self.actionAble, probs[0])
+        # action = random.choices(self.actionAngle, probs[0])
+        actionAngle = random.choices(self.actionAngle_, probs[0][:5])
+        actionAccel = random.choices(self.actionAccel_, probs[0][5:])
         # action = dist.sample()
-        log_prob = dist.log_prob(action)
+        # log_prob = dist.log_prob(action)
+        log_prob_angle = distAngle.log_prob(actionAngle)
+        log_prob_accel = distAccel.log_prob(actionAccel)
         value = self.critic(state)
         # action = action.numpy()[0]
-        action = action[0]
-        # if self.id==0 :
-        #     print(f'\naction: {action}, probs: {probs}')
+        # action = action[0]
+        actionAngle = actionAngle[0]
+        actionAccel = actionAccel[0]
         value = value.numpy()[0]
-        log_prob = log_prob.numpy()[0]
-
+        # log_prob = log_prob.numpy()[0]
+        log_prob_angle = log_prob_angle.numpy()
+        log_prob_accel = log_prob_accel.numpy()
+        # print(f"value: {value[0]}, gamaValue: {self.gamma*value[0]}")
+        # ala = self.gamma*value[0] - self.temp
+        # self.temp = value[0]
+        # print(f'ala: {ala}')
+        # if self.id==0 :
+        #     print(f'\naction: {action}, value: {value[0]},probs: {probs}')
+        # self.trainLogs[1].append(value[0])
+        # self.trainLogs[2].append(ala)
+        action = {'angle': actionAngle, 'accel': actionAccel}
+        log_prob = [*log_prob_angle, *log_prob_accel]
         return action, log_prob, value
 
-    def learn(self, outofbound_loss=0):
-        for _ in range(self.n_epochs):
-            state_arr, action_arr, old_prob_arr, vals_arr,\
-                reward_arr, dones_arr, batches = \
-                self.memory.generate_batches()
-            # if self.id==0:
-            #     print(f"\nagnet ID: {self.id}, reward_arr: {reward_arr}")
-            values = vals_arr
-            advantage = np.zeros(len(reward_arr), dtype=np.float32)
+    def learn(self, outofbound_loss=0, outofbound=False):
+        state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = self.memory.generate_batches()
+        values = vals_arr
+        advantage = np.zeros(len(reward_arr), dtype=np.float32)
+        # print("\n")
+        for t in range(len(reward_arr)-1):
+            discount = 1
+            a_t = 0
+            for k in range(t, len(reward_arr)-1):
+                # a_t += discount*(reward_arr[k] + self.gamma*values[k+1] * (1-int(dones_arr[k])) - values[k])
+                a_t += discount*reward_arr[k]
+                discount *= self.gamma*self.gae_lambda
+                # print(f"discount: {discount}, reward_arr: {reward_arr[k]}, gv: {self.gamma*values[k+1]}, vk+1: {values[k+1]}, vk: {values[k]}, at_first: {discount*(reward_arr[k] + self.gamma*values[k+1] * (1-int(dones_arr[k])) - values[k])}, a_t: {a_t}")
+                # with open("./Logs.txt", 'a') as f:
+                #         f.write(f"\ndiscount: {discount}, reward_arr: {reward_arr[k]}, gv: {self.gamma*values[k+1]}, vk+1: {values[k+1]}, vk: {values[k]}, at_first: {discount*(reward_arr[k] + self.gamma*values[k+1] * (1-int(dones_arr[k])) - values[k])}, a_t: {a_t}")
 
-            for t in range(len(reward_arr)-1):
-                discount = 1
-                a_t = 0
-                for k in range(t, len(reward_arr)-1):
-                    a_t += discount*(reward_arr[k] + self.gamma*values[k+1] * (1-int(dones_arr[k])) - values[k])
-                    discount *= self.gamma*self.gae_lambda
-                advantage[t] = a_t
+            advantage[t] = a_t
             
-            # if self.id==0:
-            #     print(f"\nadvantage: {advantage}\n\n")
-
+        if self.id==0:
+            print(f"advantage: {np.mean(advantage)}")
+        # if self.id==0:
+        #     print(f"\nadvantage: {advantage}\n\n")
+        if outofbound:
+            advantage = np.asarray(outofbound_loss)
+            # print(f"new advantage: {np.mean(advantage)}, {len(advantage)}")
+        for _ in range(self.n_epochs):
             for batch in batches:
                 with tf.GradientTape(persistent=True) as tape:
+                    # print(f"batch {batch}, action_arr: {action_arr[batch]}")
                     states = tf.convert_to_tensor(state_arr[batch])
                     old_probs = tf.convert_to_tensor(old_prob_arr[batch])
-                    actions = tf.convert_to_tensor(action_arr[batch])
-                    # actions_accel = tf.convert_to_tensor([ac['accel'] for ac in action_arr[batch]])
-                    # actions_angle = tf.convert_to_tensor([ac['angle'] for ac in action_arr[batch]])
+                    # old_probs = tf.convert_to_tensor(old_prob_arr[batch])
+                    # actions = tf.convert_to_tensor(action_arr[batch])
+                    actions_accel = tf.convert_to_tensor([ac['accel'] for ac in action_arr[batch]])
+                    actions_angle = tf.convert_to_tensor([ac['angle'] for ac in action_arr[batch]])
                     probs = self.actor(states)
+                    # dist = tfp.distributions.Categorical(probs=probs)
+                    distAngle = tfp.distributions.Categorical(probs=probs[0][:5])
+                    distAccel = tfp.distributions.Categorical(probs=probs[0][5:])
+                    # new_probs = dist.log_prob(actions)
                     # if self.id==0 :
-                    #     print(f'\nbatch mode\nprobs: {probs}')
-                    dist = tfp.distributions.Categorical(probs)
-                    new_probs = dist.log_prob(actions)
+                    # #     # print(f'\n\nstates: {states}')
+                    # #     print(f'\nprobs: {probs}')
+                    #     print(f'actions: {actions}')
+                    #     print(f'old_probs: {old_probs},\n new_probs: {new_probs},\n ratio: {tf.math.exp(new_probs - old_probs)}')
+                        # print(f'')
+                    #     if np.isnan(probs[0][0]):
+                    #         print("QQQQQQQQQ")
+                    #         quit()
                     # print(f"actions: {actions},\nnew_probs: {new_probs}\n\n")
-                    # new_probs_accel = dist.log_prob(actions_accel)
-                    # new_probs_angle = dist.log_prob(actions_angle)
-                    # new_probs = (new_probs_accel + new_probs_angle)/2
-
+                    old_probs_accel, old_probs_angle= [], []
+                    for prob in old_probs:
+                        old_probs_angle.append(prob[0])
+                        old_probs_accel.append(prob[1])
+                    old_probs = [*old_probs_angle, *old_probs_accel]
+                    new_probs_accel = distAccel.log_prob(actions_accel)
+                    new_probs_angle = distAngle.log_prob(actions_angle)
+                    new_probs = [*new_probs_angle, *new_probs_accel]
+                    old_probs = tf.convert_to_tensor(old_probs)
+                    new_probs = tf.convert_to_tensor(new_probs)
+                    # print(f"\nnew_probs: {len(new_probs)}, old_probs: {len(old_probs)}")
                     critic_value = self.critic(states)
 
                     critic_value = tf.squeeze(critic_value, 1)
 
+                    adv_dupl = []
+                    # print(f"batch: {batch}")
+                    advantage = np.array(advantage)[batch.astype(int)]
+                    # print(f"advantage[batch]: {advantage[batch]}")
+                    for adv in list(advantage[batch]):
+                        # print(f"adv: {adv}")
+                        adv_dupl.append(adv)
+                        adv_dupl.append(adv)
+
+                    advantage = adv_dupl
+                    # advantage = tf.convert_to_tensor(advantage)
+                    # prob_ratio = tf.math.exp(new_probs - old_probs)
+                    # prob_ratio = tf.math.divide(new_probs, old_probs)
+                    # prob_ratio = tf.math.divide(tf.math.exp(new_probs), tf.math.exp(old_probs))
                     prob_ratio = tf.math.exp(new_probs - old_probs)
-                    weighted_probs = advantage[batch] * prob_ratio
-                    clipped_probs = tf.clip_by_value(prob_ratio,
-                                                     1-self.policy_clip,
-                                                     1+self.policy_clip)
-                    # print(f"prob_ratio: {prob_ratio}, self.policy_clip: {self.policy_clip}, clipped_probs: {list(set(list(clipped_probs.numpy())) - set(list(prob_ratio.numpy())))}")
-                    weighted_clipped_probs = clipped_probs * advantage[batch]
-                    actor_loss = -tf.math.minimum(weighted_probs,
-                                                  weighted_clipped_probs)      # -
+                    # prob_ratio = prob_ratio.numpy()
+                    # for indx, p_r in enumerate(prob_ratio):
+                    #     if np.isnan(p_r):
+                    #         prob_ratio[indx] = 1
+
+                    # prob_ratio = tf.convert_to_tensor(prob_ratio)
+                    # if outofbound:
+                        # print(f"len(advantage): {advantage},  batch: {batch}, batches: {batches}")
+                    # weighted_probs = advantage[batch] * prob_ratio
+                    weighted_probs = advantage * prob_ratio
+                    clipped_probs = tf.clip_by_value(prob_ratio, 1-self.policy_clip, 1+self.policy_clip)
+                    # if self.id == 0:
+                    #     print(f"\naction advantage values: {[actions[batch[0]].numpy(), advantage[batch[0]]]}")
+                    #     print(f"prob_ratio: {prob_ratio}\nadvantage[batch]: {advantage[batch]}")
+                    # weighted_clipped_probs = clipped_probs * advantage[batch]
+                    weighted_clipped_probs = clipped_probs * advantage
+                    # print(f"\n\nweighted_probs: {weighted_probs}\nweighted_clipped_probs: {weighted_clipped_probs}")
+                    # print(f"\ntf.math.minimum(weighted_probs, weighted_clipped_probs): {list(set(list(weighted_clipped_probs.numpy())) - set(list(weighted_clipped_probs.numpy())))}")
+                    # actor_loss = tf.math.maximum(weighted_probs, weighted_clipped_probs)
+                    actor_loss = -tf.math.minimum(weighted_probs, weighted_clipped_probs)       # -
                     # if self.id == 0:
                     #     print(f'actor_loss: {actor_loss}')
+                        # print(f"action: {actions}")
                     actor_loss = tf.math.reduce_mean(actor_loss)
+                    if outofbound:
+                        print(f"actor_loss out of bound: {actor_loss}")
+                        print(f"len(advantage): {len(advantage)}, batches: {batches}, batch: {batch}")
                     # if self.id == 0:
                     #     print(f'actor_loss_reduce_mean: {actor_loss}')
                     # if self.id == 0:
                     #     print(f'actor_loss: {actor_loss.numpy()}, diff_in_probs: {list(set(list(weighted_probs.numpy())) - set(list(weighted_clipped_probs.numpy())))}')
-                    if self.outofBound():
-                        actor_loss += outofbound_loss
-                    returns = advantage[batch] + values[batch]
-                    critic_loss = keras.losses.MSE(critic_value, returns)
+                    # if self.outofBound():
+                    #     actor_loss += outofbound_loss
+                    # returns = advantage[batch] + values[batch]
+                    # returns = advantage + values[batch]
+                    # critic_loss = keras.losses.MSE(critic_value, returns)
+                    # print(f"actor_loss: {actor_loss}, critic_loss: {critic_loss}")
 
                 # actor_loss = -actor_loss
                 # critic_loss = [-cl for cl in critic_loss]
@@ -172,19 +281,21 @@ class Agent():
                 #     print(f"actor_params: {actor_params[-1].numpy()}") #, probs: {probs}, new_probs: {new_probs}")
                     # print(f"self.actor.trainable_variables: {self.actor.trainable_variables}")
                     # quit()
+                # if self.id==0:
+                #     print(f"\n\nactor_params: {actor_params[-1].numpy()}")
                 actor_grads = tape.gradient(actor_loss, actor_params)
-                critic_params = self.critic.trainable_variables
-                critic_grads = tape.gradient(critic_loss, critic_params)
-                self.actor.optimizer.apply_gradients(
-                        zip(actor_grads, actor_params))
-                self.critic.optimizer.apply_gradients(
-                        zip(critic_grads, critic_params))
+                # critic_params = self.critic.trainable_variables
+                # critic_grads = tape.gradient(critic_loss, critic_params)
+                self.actor.optimizer.apply_gradients(zip(actor_grads, actor_params))
+                # self.critic.optimizer.apply_gradients(zip(critic_grads, critic_params))
         # print(f"actor params: {actor_params[-1].numpy()}")
         # print(f"actor_loss: {actor_loss}, critic_loss: {critic_loss}\n")
         # if self.id == 0:
         #     print(f"actor_loss: {actor_loss}\n\n")
-        self.actorLoss.append(actor_loss.numpy())
+        self.trainLogs[0].append(actor_loss.numpy())
+        # self.trainLogs[1].append(critic_loss.numpy())
         self.memory.clear_memory()
+        
 
     def initRandomPosition(self, xWidth, yWidth, agents, id):
         loactionEmpty = []
@@ -268,6 +379,7 @@ class Agent():
         self.speed['vy'] = np.sin(Si) * u
         self.angle = Si 
         self.firstAngle = Si
+        self.maxAngle = Si + np.deg2rad(30)
         print(f"ID: {self.id}, angle: {self.angle}, si: {Si}")
 
     def initLine(self):
@@ -284,7 +396,7 @@ class Agent():
         self.nonVectoralSpeed = self.nonVectoralSpeedStart
         self.angle = self.firstAngle
         self.nonVectoralAccel = 0
-        self.actorLoss = []
+        self.trainLogs = [[],[],[]]
 
     def getAttr(self):
         return {'firstPosX': self.firstPosX, 'firstPosY': self.firstPosY, 'xPos': self.xPos, 'yPos': self.yPos, 'xDest': self.xDest, 'yDest': self.yDest,
@@ -321,7 +433,7 @@ class Agent():
         return dist
     
     def remainDist(self):
-        Dist = np.sqrt((self.getAttr()['xPos'] - self.getAttr()['xDest']) ** 2 + (self.getAttr()['yPos'] - self.getAttr()['yDest']) ** 2)
+        Dist = np.sqrt((self.xPos - self.xDest) ** 2 + (self.yPos - self.yDest) ** 2)
         return Dist
 
     def TTCD(self, target): # Calculating time to collision for direct move.
@@ -373,10 +485,10 @@ class Agent():
     def updateAcceleration(self, Si, u, omega, g, deltaT):
         u = u + g * deltaT
         Si = Si + omega * deltaT
-        if Si > 2 * np.pi:
-            Si = Si - 2 * np.pi
-        if Si < 0:
-            Si = Si + 2 * np.pi
+        # if Si > 2 * np.pi:
+        #     Si = Si - 2 * np.pi
+        # if Si < 0:
+        #     Si = Si + 2 * np.pi
         # if self.id == 0:
         #     print(f"g: {g}, omega: {omega}, u: {u}, Si: {Si}")
         self.nonVectoralSpeed = u
@@ -388,7 +500,7 @@ class Agent():
     def maneuverMove(self, angle, nonVectoralSpeed, changedAngle, changedAccel, deltaT):
         # print(f"ID: {self.id}, angle: {angle}")
         self.updateAcceleration(angle, nonVectoralSpeed , changedAngle, changedAccel, deltaT)
-        newXspeed, newYspeed = self.updateSpeed(angle, nonVectoralSpeed)
+        newXspeed, newYspeed = self.updateSpeed(self.angle, self.nonVectoralSpeed)
         self.xPos = self.xPos + 0.5 * (self.speed['vx'] + newXspeed) * deltaT
         self.yPos = self.yPos + 0.5 * (self.speed['vy'] + newYspeed) * deltaT
         self.speed['vx'], self.speed['vy'] = newXspeed, newYspeed 
@@ -429,9 +541,18 @@ class Agent():
         # v2_u = bulletVectorAgentDirectLine / np.linalg.norm(bulletVectorAgentDirectLine)
         # angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
-        al  = np.cross(v2, v1)
+        al = np.cross(v2, v1)
+        # al = np.dot(v2, v1)
         # print(f"agent.id: {self.id}, v1 {v1}, v2: {v2}, al: {al}")
         return al > 0
+
+    def backward(self):
+        v1 = [self.xPos - self.firstPosX, self.yPos - self.firstPosY]
+        v2 = [self.xDest - self.firstPosX, self.yDest - self.firstPosY]
+
+        al = np.dot(v2, v1)
+
+        return al
 
     def checkLeftofLine(self):
         __angle = np.dot(list(self.speed.values()), list(self.firstSpeed.values())) / (np.linalg.norm(list(self.speed.values())) * np.linalg.norm(list(self.firstSpeed.values())))
