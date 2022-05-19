@@ -27,7 +27,15 @@ class Env():
                 agn.initRandomPosition(xWidth=self.xWidth, yWidth=self.yWidth, agents=agentList, id=i)
                 agentList.append(agn)
             return agentList
-        else:
+        elif agnetNum == 2:
+            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+            ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=0)
+            agentList.append(ag)
+            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+            ag.initPredefinePosition(x=self.xWidth, y=self.yWidth, xD=0, yD=0, id=1)
+            agentList.append(ag)
+            return agentList
+        elif agnetNum == 4:
             ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
             ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=0)
             agentList.append(ag)
@@ -35,7 +43,10 @@ class Env():
             ag.initPredefinePosition(x=self.xWidth, y=self.yWidth, xD=0, yD=0, id=1)
             agentList.append(ag)
             ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
-            ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=2)
+            ag.initPredefinePosition(x=self.xWidth, y=0, xD=0, yD=self.yWidth, id=2)
+            agentList.append(ag)
+            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+            ag.initPredefinePosition(x=0, y=self.yWidth, xD=self.xWidth, yD=0, id=3)
             agentList.append(ag)
             return agentList
 

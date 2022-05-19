@@ -209,7 +209,7 @@ if __name__ == '__main__':
     dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     world = Env(x, y)
     agentList = world.initAgent(n_actions=10, random=False) # 18
-    _ = agentList.pop(2)
+    # _ = agentList.pop(2)
     episodes=10000
     logPath = f"./Log/{dtLogger}/"
     pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
