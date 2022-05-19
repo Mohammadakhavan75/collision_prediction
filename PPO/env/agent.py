@@ -43,6 +43,7 @@ class Agent():
         self.actionAngle_ = [_ for _ in range(5)]
         self.actionAccel_ = [_ for _ in range(5)]
         self.collision_occured = False
+        self.arrival = False
 
         self.gamma = gamma
         self.policy_clip = policy_clip

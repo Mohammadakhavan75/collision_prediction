@@ -328,9 +328,9 @@ if __name__ == '__main__':
                             pxt.append(agent.xPos)
                             pyt.append(agent.yPos)
 
-                else:
+                elif not agent.arrival:
                     done[agent.id] = True
-                    breakEpisode = True
+                    # breakEpisode = True
                     # observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
                     # rewardsList[agent.id][1].append(reward/100)
                     # reward=50000
@@ -347,6 +347,8 @@ if __name__ == '__main__':
 
                     print(f"agent attribute is: {agent.getAttr()}")
                     print(f"Agent {agent.id} Arrived!")
+                    agent.arrival=True
+                
 
                 if agent.outofBound():
                     breakEpisode = True
