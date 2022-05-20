@@ -360,11 +360,12 @@ if __name__ == '__main__':
                     # rewardsList[agent.id][1].append(reward)
                     # observation_ = [ob/x for ob in observation_]
                     # agent.store_transition(observation, action, prob, val, reward, done[0])
-                    
-                    if stepManuover[agent.id] % N > 1:
+                    state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = agent.memory.generate_batches()
+                    print(f"len batches : {len(batches)}")
+                    if stepManuover[agent.id] % N > 1 and len(batches) != 0:
                         reward = [-100 for i in range(stepManuover[agent.id] % N)]
                         agent.learn(outofbound_loss=reward, outofbound=True)
-                    elif stepManuover[agent.id] % N == 0:
+                    elif stepManuover[agent.id] % N == 0 and len(batches) != 0:
                         reward = [-100 for i in range(N)]
                         agent.learn(outofbound_loss=reward, outofbound=True)
                     # observation = observation_
