@@ -71,76 +71,78 @@ def loggerMid(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     # plt.savefig(logPath + "ActorLoss_Agent1_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     # plt.close("all")
 
-def loggerEnd(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfromPath, maxDistfromPathPerEpisode):
+def loggerEnd(i, stepCounter, agentList, agentsPos, dtLogger, maxDistfromPath, maxDistfromPathPerEpisode):
     logPath = f"./Log/{dtLogger}/episode_{i}/"
     pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
+    logPickel = logPath + 'pickel/'
+    pathlib.Path(logPickel).mkdir(parents=True, exist_ok=True)
 
     print("score is: ", score_history[-1], "avg_score:", avg_score)
     print(f"maxDistfromPath: {maxDistfromPath}, maxDistfromPathPerEpisode: {maxDistfromPathPerEpisode}")
     print(f"max Colision {np.sum(info[0][4])}")
 
     sns.lineplot(data=total_avg_score).set(title='Total Average Score', xlabel="step", ylabel="value")
-    plt.savefig(logPath + "end_episode_total_avg_score_" + str(i) + ".png", dpi=500)
+    plt.savefig(logPath + "total_avg_score_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    with open(logPath + 'total_avg_score' + str(i) + '.pkl', 'wb') as f:
+    with open(logPickel + 'total_avg_score' + str(i) + '.pkl', 'wb') as f:
         pickle.dump(total_avg_score, f)
 
     sns.lineplot(data=totalScore).set(title='Total Score', xlabel="step", ylabel="value")
-    plt.savefig(logPath + "end_episode_totalScore_" + str(i) + ".png", dpi=500)
+    plt.savefig(logPath + "totalScore_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    with open(logPath + 'totalScore' + str(i) + '.pkl', 'wb') as f:
+    with open(logPickel + 'totalScore' + str(i) + '.pkl', 'wb') as f:
         pickle.dump(totalScore, f)
 
     sns.lineplot(data=episodeScore).set(title='Episode' + str(i) + ' Score', xlabel="step", ylabel="value")
-    plt.savefig(logPath + "end_episode_episodeScore_" + str(i) + ".png", dpi=500)
+    plt.savefig(logPath + "episodeScore_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    with open(logPath + 'episodeScore' + str(i) + '.pkl', 'wb') as f:
+    with open(logPickel + 'episodeScore' + str(i) + '.pkl', 'wb') as f:
         pickle.dump(episodeScore, f)
 
-    sns.lineplot(px, py, label="Agent " + str(agentList[0].id)).set(title='Path of Agnets', xlabel="X", ylabel="Y")
-    sns.lineplot(pxt, pyt, label="Agent " + str(agentList[1].id))
-    plt.savefig(logPath + "end_episode_pathCombine_" + str(i) + ".png", dpi=500)
+    for agent in agentList:
+        sns.lineplot(agentsPos[agent.id]['x'], agentsPos[agent.id]['y'], label="Agent " + str(agent.id)).set(title='Path of Agnets', xlabel="X", ylabel="Y")
+        
+    plt.savefig(logPath + "path_Combine_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    with open(logPath + 'path_agent_' + str(agentList[0].id) + '_' + str(i) + '.pkl', 'wb') as f:
-        pickle.dump([px, py], f)
+    with open(logPickel + 'path_agent_' + str(agentList[0].id) + '_' + str(i) + '.pkl', 'wb') as f:
+        pickle.dump([[agentsPos[agent.id]['x'], agentsPos[agent.id]['y']] for agent in agentList], f)
     
-    with open(logPath + 'path_agent_' + str(agentList[1].id) + '_' + str(i) + '.pkl', 'wb') as f:
-        pickle.dump([pxt, pyt], f)
 
     sns.lineplot(data=distAgent[0]).set(title='Distance Between Agnets', xlabel="X", ylabel="distance")
-    plt.savefig(logPath + "end_episode_distAgent_" + str(i) + ".png", dpi=500)
+    plt.savefig(logPath + "distAgent_" + str(i) + ".png", dpi=500)
     plt.close("all")
 
-    sns.lineplot(data=info[agentList[0].id][0], label="toward goal").set(title='Rewards Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
-    sns.lineplot(data=info[agentList[0].id][1], label="from line")
-    sns.lineplot(data=info[agentList[0].id][2], label="collision")
-    sns.lineplot(data=info[agentList[0].id][3], label="going left")
-    plt.savefig(logPath + "end_episode_R_Agent_" + str(agentList[0].id)+ "_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
-    plt.close("all")
+    # sns.lineplot(data=info[agentList[0].id][0], label="toward goal").set(title='Rewards Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
+    # sns.lineplot(data=info[agentList[0].id][1], label="from line")
+    # sns.lineplot(data=info[agentList[0].id][2], label="collision")
+    # sns.lineplot(data=info[agentList[0].id][3], label="going left")
+    # plt.savefig(logPath + "R_Agent_" + str(agentList[0].id)+ "_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
+    # plt.close("all")
 
-    with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
-        pickle.dump(info[agentList[0].id], f)
+    # with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
+    #     pickle.dump(info[agentList[0].id], f)
 
-    sns.lineplot(data=info[agentList[1].id][0], label="toward goal").set(title='Rewards Agnet ' + str(agentList[1].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
-    sns.lineplot(data=info[agentList[1].id][1], label="from line")
-    sns.lineplot(data=info[agentList[1].id][2], label="collision")
-    sns.lineplot(data=info[agentList[1].id][3], label="going left")
-    plt.savefig(logPath + "end_episode_R_Agent_" + str(agentList[1].id)+ "_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
-    plt.close("all")
+    for agent in agentList:
+        sns.lineplot(data=info[agent.id][0], label="toward goal").set(title='Rewards Agnet ' + str(agent.id) + ' step ' + str(stepCounter), xlabel="X", ylabel="distance")
+        sns.lineplot(data=info[agent.id][1], label="from line")
+        sns.lineplot(data=info[agent.id][2], label="collision")
+        sns.lineplot(data=info[agent.id][3], label="going left")
+        plt.savefig(logPath + "R_Agent_" + str(agent.id)+ "_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
+        plt.close("all")
 
-    with open(logPath + 'R_Agent_' + str(agentList[1].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
-        pickle.dump(info[agentList[1].id], f)
+        with open(logPickel + 'R_Agent_' + str(agent.id)+ "_"  + str(i) + '.pkl', 'wb') as f:
+            pickle.dump(info[agent.id], f)
 
-    sns.lineplot(data=agentList[0].trainLogs[0], label="loss").set(title='Actor Loss of Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
-    plt.savefig(logPath + "ActorLoss_Agent_0_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
-    plt.close("all")
+    # sns.lineplot(data=agentList[0].trainLogs[0], label="loss").set(title='Actor Loss of Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
+    # plt.savefig(logPath + "ActorLoss_Agent_" + str(agent.id) + "_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
+    # plt.close("all")
 
-    with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
-        pickle.dump(agentList[0].trainLogs[0], f)
+    # with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
+    #     pickle.dump(agentList[0].trainLogs[0], f)
 
     # sns.lineplot(data=agentList[0].trainLogs[1], label="loss").set(title='value of state Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
     # plt.savefig(logPath + "Critic_value_Agent_0_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
@@ -150,12 +152,13 @@ def loggerEnd(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     # plt.savefig(logPath + "Advantage_value_Agent_0_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     # plt.close("all")
 
-    sns.lineplot(data=agentList[1].trainLogs[0], label="loss").set(title='Actor Loss of Agnet ' + str(agentList[1].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
-    plt.savefig(logPath + "ActorLoss_Agent_1_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
-    plt.close("all")
-    
-    with open(logPath + 'R_Agent_' + str(agentList[1].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
-        pickle.dump(agentList[1].trainLogs[0], f)
+    for agent in agentList:
+        sns.lineplot(data=agent.trainLogs[0], label="loss").set(title='Actor Loss of Agnet ' + str(agent.id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
+        plt.savefig(logPath + "ActorLoss_Agent_" + str(agent.id) + "_"  + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
+        plt.close("all")
+
+        with open(logPickel + 'Actor_Loss_Agent_' + str(agent.id)+ "_"  + str(i) + '.pkl', 'wb') as f:
+            pickle.dump(agent.trainLogs[0], f)
 
     # sns.lineplot(data=agentList[1].trainLogs[1], label="loss").set(title='value of state Agnet ' + str(agentList[0].id) + ' step ' + str(stepCounter), xlabel="X", ylabel="value")
     # plt.savefig(logPath + "Critic_value_Agent_1_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
@@ -166,19 +169,19 @@ def loggerEnd(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfrom
     # plt.close("all")
 
 
-    sns.lineplot(data=action_history[0], label="actions").set(title='Actions of Agnet ' + str(0) + ' step ' + str(stepCounter), xlabel="Steps", ylabel="Actions")
-    plt.savefig(logPath + "Actions_Agent_0_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
-    plt.close("all")
+    # sns.lineplot(data=action_history[0], label="actions").set(title='Actions of Agnet ' + str(0) + ' step ' + str(stepCounter), xlabel="Steps", ylabel="Actions")
+    # plt.savefig(logPath + "Actions_Agent_0_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
+    # plt.close("all")
 
-    with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
-        pickle.dump(agentList[0].trainLogs[0], f)
+    # with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
+    #     pickle.dump(agentList[0].trainLogs[0], f)
 
     for agent in agentList:
-        modelPath = f"./Log/{dtLogger}/episode_{i}/agent_{agent.id}"
+        modelPath = f"./Log/{dtLogger}/episode_{i}/agent_{agent.id}/"
         # pathlib.Path(modelPath).mkdir(parents=True, exist_ok=True)
         agent.save_models(modelPath)
 
-    with open(logPath + "end_episode_actionList" + str(i) + ".txt", 'w') as f:
+    with open(logPath + "actionList" + str(i) + ".txt", 'w') as f:
         for aa in actionsListEpisode:
             f.write("%s\n" % aa)
 
@@ -195,7 +198,6 @@ if __name__ == '__main__':
     total_avg_score = []
     mean_episode_score = []
     actionsListEpisode=[]
-    action_history=[[],[]]
     LoggerOn = True
     LoggerMidOn = False
     ismanouver = False
@@ -208,12 +210,13 @@ if __name__ == '__main__':
     learn_iters = 0
     dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     world = Env(x, y)
-    agentList = world.initAgent(n_actions=10, random=False) # 18
-    # _ = agentList.pop(2)
+    agentList = world.initAgent(n_actions=10, random=False, agnetNum=4) # 18
+    action_history=[[] for _ in agentList]
     episodes=10000
     logPath = f"./Log/{dtLogger}/"
     pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
     for i in range(episodes):
+        agentsPositions = [{'x': [], 'y': []} for _ in agentList]
         px, pxt, pxd = [], [], []
         py, pyt, pyd = [], [], []
         print("\nepisode %f started!", i)
@@ -230,14 +233,14 @@ if __name__ == '__main__':
         # ob = observation
         # observation = [ob[0]/x, ob[1]/x, ob[2]/500, ob[3]/500, ob[4]/x, ob[5]/x, ob[6]/500, ob[7]/500]
         episodeScore = []
-        actionsListEpisode = [[],[]]
+        actionsListEpisode = [[] for _ in agentList]
         outputofModel = []
-        distAgent = [[],[]]
-        rewardsList = [[[],[],[],[],[]], [[],[],[],[],[]]]
-        action_history=[[],[]]
-        score = [0,0]
+        distAgent = [[] for _ in agentList]
+        rewardsList = [[[],[],[],[],[]] for _ in agentList]
+        action_history=[[] for _ in agentList]
+        score = [0 for _ in agentList]
         stepCounter = 0
-        stepManuover = [0,0]
+        stepManuover = [0 for _ in agentList]
         maxDistfromPathPerEpisode = 0
         breakEpisode = False
         TTCValue = False
@@ -294,13 +297,9 @@ if __name__ == '__main__':
                         # actionsListEpisode[0].append(action['accel'].numpy())
                         # actionsListEpisode[1].append(action['angle'].numpy())
                         distAgent[agent.id].append(agent.distfromAgent(target))
-                        if agent.id == 0:
-                            px.append(agent.xPos)
-                            py.append(agent.yPos)
 
-                        if agent.id == 1:
-                            pxt.append(agent.xPos)
-                            pyt.append(agent.yPos)
+                        agentsPositions[agent.id]['x'].append(agent.xPos)
+                        agentsPositions[agent.id]['y'].append(agent.yPos)
 
                         if maxDistfromPathPerEpisode < agent.distfromPathLine():
                             maxDistfromPathPerEpisode = agent.distfromPathLine()
@@ -320,13 +319,8 @@ if __name__ == '__main__':
                         # observation = observation_
 
                         distAgent[agent.id].append(agent.distfromAgent(target))
-                        if agent.id == 0:
-                            px.append(agent.xPos)
-                            py.append(agent.yPos)
-
-                        if agent.id == 1:
-                            pxt.append(agent.xPos)
-                            pyt.append(agent.yPos)
+                        agentsPositions[agent.id]['x'].append(agent.xPos)
+                        agentsPositions[agent.id]['y'].append(agent.xPos)
 
                 elif not agent.arrival:
                     done[agent.id] = True
@@ -338,29 +332,35 @@ if __name__ == '__main__':
                     # agent.store_transition(observation, action, prob, val, reward, done[0])
                     # agent.learn(outofbound_loss=reward)
                     # observation = observation_
-                    if stepManuover[agent.id] % N > 1:
+                    state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = agent.memory.generate_batches()
+                    print(f"len batches : {len(batches)}")
+                    if stepManuover[agent.id] % N > 1 and len(batches) != 0:
                         reward = [100 for i in range(stepManuover[agent.id] % N)]
                         agent.learn(outofbound_loss=reward, outofbound=True)
-                    elif stepManuover[agent.id] % N == 0:
+                    elif stepManuover[agent.id] % N == 0 and len(batches) != 0:
                         reward = [100 for i in range(N)]
                         agent.learn(outofbound_loss=reward, outofbound=True)
-
-                    print(f"agent attribute is: {agent.getAttr()}")
-                    print(f"Agent {agent.id} Arrived!")
+        
                     agent.arrival=True
+                    for ag in agentList:
+                        print(f"agent attribute is: {ag.getAttr()}")
+                        print(f"Agent {ag.id} Arrived!")
                 
 
                 if agent.outofBound():
                     breakEpisode = True
                     # action, prob, val = agent.choose_action(observation)
-                    print(f"agent attribute is: {agent.getAttr()}")
+                    for ag in agentList:
+                        print(f"agent attribute is: {ag.getAttr()}")
+                
                     print("agent goes out of bound!")
-                    print(f"stepManuover: {stepManuover[agent.id] % N}")
+                    print(f"stepManuover: {stepManuover[agent.id]}")
                     # observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
                     
                     # rewardsList[agent.id][1].append(reward)
                     # observation_ = [ob/x for ob in observation_]
                     # agent.store_transition(observation, action, prob, val, reward, done[0])
+                    
                     if stepManuover[agent.id] % N > 1:
                         reward = [-100 for i in range(stepManuover[agent.id] % N)]
                         agent.learn(outofbound_loss=reward, outofbound=True)
@@ -394,7 +394,7 @@ if __name__ == '__main__':
                 #     print("agent score goes lower than -100000")
                 #     breakEpisode = True
             
-
+            # print(f"\nstep: {stepCounter},\nobservation_agent: {observation_agent}")
         # print("episode %f finished!", i)
 
         score_history.append(score[j]/stepManuover[agentList[0].id])
@@ -405,7 +405,7 @@ if __name__ == '__main__':
             # agent.save_models()
 
         if LoggerOn:
-            loggerEnd(i, stepCounter, agentList, px, py, pxt, pyt, dtLogger, maxDistfromPath, maxDistfromPathPerEpisode)
+            loggerEnd(i, stepCounter, agentList, agentsPositions, dtLogger, maxDistfromPath, maxDistfromPathPerEpisode)
 
         
 

@@ -174,12 +174,13 @@ class Agent():
 
             advantage[t] = a_t
             
-        if self.id==0:
-            print(f"advantage: {np.mean(advantage)}")
         # if self.id==0:
-        #     print(f"\nadvantage: {advantage}\n\n")
+        #     print(f"advantage: {np.mean(advantage)}")
+        # if self.id==0:
+        
         if outofbound:
             advantage = np.asarray(outofbound_loss)
+            # print(f"advantage: {advantage}")
             # print(f"new advantage: {np.mean(advantage)}, {len(advantage)}")
         for _ in range(self.n_epochs):
             for batch in batches:
@@ -260,9 +261,9 @@ class Agent():
                     #     print(f'actor_loss: {actor_loss}')
                         # print(f"action: {actions}")
                     actor_loss = tf.math.reduce_mean(actor_loss)
-                    if outofbound:
-                        print(f"actor_loss out of bound: {actor_loss}")
-                        print(f"len(advantage): {len(advantage)}, batches: {batches}, batch: {batch}")
+                    # if outofbound:
+                    #     print(f"actor_loss out of bound: {actor_loss}")
+                    #     print(f"len(advantage): {len(advantage)}, batches: {batches}, batch: {batch}")
                     # if self.id == 0:
                     #     print(f'actor_loss_reduce_mean: {actor_loss}')
                     # if self.id == 0:
@@ -297,7 +298,6 @@ class Agent():
         # self.trainLogs[1].append(critic_loss.numpy())
         self.memory.clear_memory()
         
-
     def initRandomPosition(self, xWidth, yWidth, agents, id):
         loactionEmpty = []
         x = np.random.uniform(0, xWidth)
