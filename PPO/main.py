@@ -198,6 +198,7 @@ if __name__ == '__main__':
     total_avg_score = []
     mean_episode_score = []
     actionsListEpisode=[]
+    
     LoggerOn = True
     LoggerMidOn = False
     ismanouver = False
@@ -212,6 +213,7 @@ if __name__ == '__main__':
     world = Env(x, y)
     agentList = world.initAgent(n_actions=10, random=False, agnetNum=4, senario=None) # 18
     action_history=[[] for _ in agentList]
+    agentDist = [0 for _ in agentList]
     episodes=10000
     logPath = f"./Log/{dtLogger}/"
     pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
@@ -238,6 +240,8 @@ if __name__ == '__main__':
         distAgent = [[] for _ in agentList]
         rewardsList = [[[],[],[],[],[]] for _ in agentList]
         action_history=[[] for _ in agentList]
+        agentDist = []
+        agentDistID = []
         score = [0 for _ in agentList]
         stepCounter = 0
         stepManuover = [0 for _ in agentList]
@@ -255,6 +259,16 @@ if __name__ == '__main__':
 
             totalTime += deltaT
             for j, agent in enumerate(agentList):
+                agentDist , agentDistID = [], []
+                for tg in agentList:
+                    if agent.id == tg.id:
+                        continue
+                    else:
+                        agentDist.append(agent.distfromAgent(tg))
+                        agentDistID.append(tg.id)
+
+                target = agentList[agentDistID[agentDist.index(np.min(agentDist))]]
+
                 for agg in agentList:
                     observation_agent[agg.id]['xPos'] = agg.xPos / x
                     observation_agent[agg.id]['yPos'] = agg.yPos / x
@@ -264,10 +278,10 @@ if __name__ == '__main__':
                     # print(f"\n ID: {agent.id}, Angle: {agent.angle}", end=' ')
                 # if not agent.checkArrival():
                 if not agent.checkArrival():
-                    if agent.id == agentList[0].id:
-                        target = agentList[1]
-                    else:
-                        target = agentList[0]
+                    # if agent.id == agentList[0].id:
+                    #     target = agentList[1]
+                    # else:
+                    #     target = agentList[0]
 
                     if not TTCValue and all(agent.sensor(agentList)):
                         TTCValue = True
