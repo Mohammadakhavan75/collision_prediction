@@ -45,6 +45,7 @@ class Agent():
         self.collision_occured = False
         self.arrival = False
         self.trainable = trainable
+        self.trainOccured = False
 
         self.gamma = gamma
         self.policy_clip = policy_clip
@@ -298,6 +299,7 @@ class Agent():
         self.trainLogs[0].append(actor_loss.numpy())
         # self.trainLogs[1].append(critic_loss.numpy())
         self.memory.clear_memory()
+        self.trainOccured = True
         
     def initRandomPosition(self, xWidth, yWidth, agents, id):
         loactionEmpty = []

@@ -180,11 +180,12 @@ def loggerEnd(i, stepCounter, agentList, agentsPos, dtLogger, maxDistfromPath, m
     # with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
     #     pickle.dump(agentList[0].trainLogs[0], f)
 
-    # for agent in agentList:
-    #     modelPath = f"./Log/{dtLogger}/episode_{i}/agent_{agent.id}/"
-    #     # pathlib.Path(modelPath).mkdir(parents=True, exist_ok=True)
-    #     # if world.senario != 'Overtaking':
-    #     agent.save_models(modelPath)
+    for agent in agentList:
+        modelPath = f"./Log/{dtLogger}/episode_{i}/agent_{agent.id}/"
+        # pathlib.Path(modelPath).mkdir(parents=True, exist_ok=True)
+        # if world.senario != 'Overtaking':
+        if agent.trainOccured:
+            agent.save_models(modelPath)
 
     # with open(logPath + "actionList" + str(i) + ".txt", 'w') as f:
     #     for aa in actionsListEpisode:
