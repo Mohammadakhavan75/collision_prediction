@@ -210,7 +210,7 @@ if __name__ == '__main__':
     learn_iters = 0
     dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     world = Env(x, y)
-    agentList = world.initAgent(n_actions=10, random=False, agnetNum=4) # 18
+    agentList = world.initAgent(n_actions=10, random=False, agnetNum=4, senario=None) # 18
     action_history=[[] for _ in agentList]
     episodes=10000
     logPath = f"./Log/{dtLogger}/"

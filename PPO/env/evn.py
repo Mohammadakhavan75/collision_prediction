@@ -18,8 +18,28 @@ class Env():
         self.actionSpaceCat = {'changedAccel': self.accelerationBoundryCat, 'changedAngle': self.angleBoundryCat}
 
     
-    def initAgent(self, n_actions, alpha=0.0003, batch_size=64, n_epochs=10, agnetNum=2, random=True):
+    def initAgent(self, n_actions, alpha=0.0003, batch_size=64, n_epochs=10, agnetNum=2, random=True, senario=None):
         agentList = []
+        if senario == 'Crossing':
+            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+            ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=0)
+            agentList.append(ag)
+            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+            ag.initPredefinePosition(x=self.xWidth, y=0, xD=0, yD=self.yWidth, id=1)
+            agentList.append(ag)
+
+            return agentList
+
+        if senario == 'Overtaking':
+            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+            ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=0)
+            agentList.append(ag)
+            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+            ag.initPredefinePosition(x=10000, y=10000, xD=self.xWidth, yD=self.yWidth, id=1)
+            agentList.append(ag)
+
+            return agentList
+
         if random:
             for i in range(agnetNum):
                 print(agentList)
