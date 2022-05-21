@@ -176,21 +176,25 @@ def loggerEnd(i, stepCounter, agentList, agentsPos, dtLogger, maxDistfromPath, m
     # with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
     #     pickle.dump(agentList[0].trainLogs[0], f)
 
-    for agent in agentList:
-        modelPath = f"./Log/{dtLogger}/episode_{i}/agent_{agent.id}/"
-        # pathlib.Path(modelPath).mkdir(parents=True, exist_ok=True)
-        agent.save_models(modelPath)
+    # for agent in agentList:
+    #     modelPath = f"./Log/{dtLogger}/episode_{i}/agent_{agent.id}/"
+    #     # pathlib.Path(modelPath).mkdir(parents=True, exist_ok=True)
+    #     # if world.senario != 'Overtaking':
+    #     agent.save_models(modelPath)
 
     with open(logPath + "actionList" + str(i) + ".txt", 'w') as f:
         for aa in actionsListEpisode:
             f.write("%s\n" % aa)
 
 if __name__ == '__main__':
+    sen = 'None' # None, Crossing, Overtaking
+    agnetNumber = 4
+
     x = 58000 * 1.62 # 1.3
     y = 58000 * 1.62
     deltaT = 0.5
     arrival = 0
-    agnetNumber = 2
+    
     counter = 0
     best_score = 0
     score_history = []
@@ -210,13 +214,15 @@ if __name__ == '__main__':
     N = 20
     learn_iters = 0
     dtLogger = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
-    world = Env(x, y)
-    agentList = world.initAgent(n_actions=10, random=False, agnetNum=4, senario=None) # 18
+    world = Env(x, y, senario=sen) # Crossing, Overtaking
+    agentList = world.initAgent(n_actions=10, random=False, agnetNum=agnetNumber) # 18
     action_history=[[] for _ in agentList]
     agentDist = [0 for _ in agentList]
     episodes=10000
     logPath = f"./Log/{dtLogger}/"
     pathlib.Path(logPath).mkdir(parents=True, exist_ok=True)
+    for ag in agentList:
+        print(ag.getAttr())
     for i in range(episodes):
         agentsPositions = [{'x': [], 'y': []} for _ in agentList]
         px, pxt, pxd = [], [], []
@@ -247,10 +253,42 @@ if __name__ == '__main__':
         stepManuover = [0 for _ in agentList]
         maxDistfromPathPerEpisode = 0
         breakEpisode = False
-        TTCValue = False
+        TTCValue = [False for _ in agentList]
+        statusALL = [['None' for k_ in agentList] for k_ in agentList]
+        ontimeselection = False
         # for ag in agentList:
         #     print(ag.getAttr())
+        if agnetNumber == 2:
+            if sen == 'None':
+                statusALL[0][1] = 'HeadOn'
+                statusALL[1][0] = 'HeadOn'
+            if sen == 'Crossing':
+                statusALL[0][1] = 'Crossing_giveway'
+                statusALL[1][0] = 'Crossing_standOn'
+            if sen == 'Overtaking':
+                statusALL[0][1] = 'Overtaking'
+                statusALL[1][0] = 'standBy'
+        
+        if agnetNumber == 4:
+            statusALL[0][0] = 'None'
+            statusALL[0][1] = 'HeadOn'
+            statusALL[0][2] = 'Crossing_giveway'
+            statusALL[0][3] = 'Crossing_standOn'
 
+            statusALL[1][0] = 'HeadOn'
+            statusALL[1][1] = 'None'
+            statusALL[1][2] = 'Crossing_standOn'
+            statusALL[1][3] = 'Crossing_giveway'
+
+            statusALL[2][0] = 'Crossing_standOn'
+            statusALL[2][1] = 'Crossing_giveway'
+            statusALL[2][2] = 'None'
+            statusALL[2][3] = 'HeadOn'
+
+            statusALL[3][0] = 'Crossing_giveway'
+            statusALL[3][1] = 'Crossing_standOn'
+            statusALL[3][2] = 'HeadOn'
+            statusALL[3][3] = 'None'
         while not all(done) and not breakEpisode:
             counter += 1
             stepCounter += 1
@@ -283,17 +321,25 @@ if __name__ == '__main__':
                     # else:
                     #     target = agentList[0]
 
-                    if not TTCValue and all(agent.sensor(agentList)):
-                        TTCValue = True
+                    if not TTCValue[agent.id] and all(agent.sensor(agentList)):
+                        TTCValue[agent.id]  = True
+                        # for tg in agentList:
+                        #     if agent.id == tg.id:
+                        #         continue
+                        #     else:
+                        #         statusALL[agent.id][tg.id] = world.selectStatus(agent, tg)
 
-                    if TTCValue:
+                        # print(statusALL[agent.id])
+                        
+                    # print(f"agent ID: {agent.id}, target ID: {target.id}, status: {statusALL[agent.id][target.id]}")
+                    if TTCValue[agent.id] and statusALL[agent.id][target.id] != 'Crossing_standOn' and statusALL[agent.id][target.id] != 'standBy':
                         observation = [observation_agent[agent.id]['xPos'], observation_agent[agent.id]['yPos'], observation_agent[agent.id]['xSpeed'], observation_agent[agent.id]['ySpeed'],\
                             observation_agent[target.id]['xPos'], observation_agent[target.id]['yPos'], observation_agent[target.id]['xSpeed'], observation_agent[target.id]['ySpeed']]
                         action, prob, val = agent.choose_action(observation)
                         # while agent.maxAngle < agent.angle + world.angleBoundryCat[action] or -agent.maxAngle > agent.angle + world.angleBoundryCat[action]:
                         #     action, prob, val = agent.choose_action(observation)
                         action_history[agent.id].append(action)
-                        observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
+                        observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime, statusALL[agent.id][target.id])
                         ob = observation_
                         observation_ = [ob[0]/x, ob[1]/x, ob[2]/500, ob[3]/500, ob[4]/x, ob[5]/x, ob[6]/500, ob[7]/500]
                         agent.store_transition(observation, action, prob, val, reward, done[0])
@@ -325,16 +371,16 @@ if __name__ == '__main__':
                     else:
                         ismanouver = False
                         action = None
-                        observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime)
+                        observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime, statusALL[agent.id][target.id])
                         # observation_ = [ob/x for ob in observation_]
                         ob = observation_
                         observation_ = [ob[0]/x, ob[1]/x, ob[2]/500, ob[3]/500, ob[4]/x, ob[5]/x, ob[6]/500, ob[7]/500]
-                        score[j] += reward
+                        score[agent.id] += reward
                         # observation = observation_
 
                         distAgent[agent.id].append(agent.distfromAgent(target))
                         agentsPositions[agent.id]['x'].append(agent.xPos)
-                        agentsPositions[agent.id]['y'].append(agent.xPos)
+                        agentsPositions[agent.id]['y'].append(agent.yPos)
 
                 elif not agent.arrival:
                     done[agent.id] = True
@@ -412,7 +458,7 @@ if __name__ == '__main__':
             # print(f"\nstep: {stepCounter},\nobservation_agent: {observation_agent}")
         # print("episode %f finished!", i)
 
-        score_history.append(score[j]/stepManuover[agentList[0].id])
+        score_history.append(score[agentList[0].id]/stepManuover[agentList[0].id])
         avg_score = np.mean(score_history[-100:])
         total_avg_score.append(avg_score)
         if avg_score > best_score:

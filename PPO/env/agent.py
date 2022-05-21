@@ -14,7 +14,7 @@ import itertools
 class Agent():
     def __init__(self, n_actions, gamma=0.99, alpha=0.0001 ,alpha1=0.0002, alpha2=0.003,
                  gae_lambda=0.95, policy_clip=0.2, batch_size=64,
-                 n_epochs=50, chkpt_dir='models/', acceptableDist=9260):
+                 n_epochs=50, chkpt_dir='models/', acceptableDist=9260, nonVectoralSpeed=205, trainable=True):
         self.xPos = 0
         self.yPos = 0
         self.xbPos = 0
@@ -29,8 +29,8 @@ class Agent():
         self.id = 0
         self.acceptableDist = acceptableDist
         self.reward = 0
-        self.nonVectoralSpeedStart = 205
-        self.nonVectoralSpeed = 205
+        self.nonVectoralSpeedStart = nonVectoralSpeed
+        self.nonVectoralSpeed = nonVectoralSpeed
         self.angle = 0
         self.firstAngle = 0
         self.maxAngle = 0
@@ -44,6 +44,7 @@ class Agent():
         self.actionAccel_ = [_ for _ in range(5)]
         self.collision_occured = False
         self.arrival = False
+        self.trainable = trainable
 
         self.gamma = gamma
         self.policy_clip = policy_clip

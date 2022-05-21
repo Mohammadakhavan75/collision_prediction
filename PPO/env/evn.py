@@ -4,7 +4,7 @@ import numpy as np
 import time
 
 class Env():
-    def __init__(self, xWidth, yWidth, gridCellSize=0):
+    def __init__(self, xWidth, yWidth, gridCellSize=0, senario=None):
         self.xWidth = xWidth
         self.yWidth = yWidth
         self.gridCellSize = gridCellSize
@@ -16,11 +16,11 @@ class Env():
         self.accelerationBoundryCat = [-0.2, -0.1, 0, 0.1, 0.2]
         self.angleBoundryCat = [-0.05235987755982989 + i * 0.026179938779914945 for i in range(5)]
         self.actionSpaceCat = {'changedAccel': self.accelerationBoundryCat, 'changedAngle': self.angleBoundryCat}
-
+        self.senario = senario
     
-    def initAgent(self, n_actions, alpha=0.0003, batch_size=64, n_epochs=10, agnetNum=2, random=True, senario=None):
+    def initAgent(self, n_actions, alpha=0.0003, batch_size=64, n_epochs=10, agnetNum=2, random=True):
         agentList = []
-        if senario == 'Crossing':
+        if self.senario == 'Crossing':
             ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
             ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=0)
             agentList.append(ag)
@@ -30,12 +30,12 @@ class Env():
 
             return agentList
 
-        if senario == 'Overtaking':
-            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+        if self.senario == 'Overtaking':
+            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs, nonVectoralSpeed=240)
             ag.initPredefinePosition(x=0, y=0, xD=self.xWidth, yD=self.yWidth, id=0)
             agentList.append(ag)
-            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
-            ag.initPredefinePosition(x=11000, y=11000, xD=self.xWidth, yD=self.yWidth, id=1)
+            ag = Agent(n_actions=n_actions, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs, nonVectoralSpeed=205)
+            ag.initPredefinePosition(x=10000, y=10000, xD=self.xWidth, yD=self.yWidth, id=1)
             agentList.append(ag)
 
             return agentList
@@ -70,7 +70,7 @@ class Env():
             agentList.append(ag)
             return agentList
 
-    def step(self, action, agent, target, deltaT, ismanouver, rewardsList, totalTime):
+    def step(self, action, agent, target, deltaT, ismanouver, rewardsList, totalTime, status=None):
         if action == None:
             lastDist = agent.distfromAgent(target)
             
@@ -78,7 +78,7 @@ class Env():
             changedAngle = 0
             # print(f"lastDist < agent.distfromAgent(target) {lastDist < agent.distfromAgent(target)}, lastDist: {lastDist},  agent.distfromAgent(target), {agent.distfromAgent(target)}")
             # return [agent.xPos, agent.yPos, agent.speed['vx'], agent.speed['vy'], agent.accel['ax'], agent.accel['ay'], target.xPos, target.yPos, target.speed['vx'], target.speed['vy'], target.accel['ax'], target.accel['ay']], self.stepReward(agent, target, rewardsList, totalTime, action), None, rewardsList
-            return [agent.xPos, agent.yPos, agent.speed['vx'], agent.speed['vy'], target.xPos, target.yPos, target.speed['vx'], target.speed['vy']], self.stepReward(agent, target, rewardsList, totalTime, action), None, rewardsList
+            return [agent.xPos, agent.yPos, agent.speed['vx'], agent.speed['vy'], target.xPos, target.yPos, target.speed['vx'], target.speed['vy']], self.stepReward(agent, target, rewardsList, totalTime, status=None), None, rewardsList
         else:
             # print(f"action['accel'].numpy(): {action['accel'].numpy()}, action['angle'].numpy(): {action['angle'].numpy()}")
             lastDist = agent.distfromAgent(target)
@@ -93,7 +93,7 @@ class Env():
             # agent.directMove(deltaT)
             # print(f"lastDist < agent.distfromAgent(target) {lastDist < agent.distfromAgent(target)}, lastDist: {lastDist},  agent.distfromAgent(target), {agent.distfromAgent(target)}")
             # return [agent.xPos, agent.yPos, agent.speed['vx'], agent.speed['vy'], agent.accel['ax'], agent.accel['ay'], target.xPos, target.yPos, target.speed['vx'], target.speed['vy'], target.accel['ax'], target.accel['ay']], self.stepReward(agent, target, rewardsList, totalTime, action), None, rewardsList
-            return [agent.xPos, agent.yPos, agent.speed['vx'], agent.speed['vy'], target.xPos, target.yPos, target.speed['vx'], target.speed['vy']], self.stepReward(agent, target, rewardsList, totalTime, action), None, rewardsList
+            return [agent.xPos, agent.yPos, agent.speed['vx'], agent.speed['vy'], target.xPos, target.yPos, target.speed['vx'], target.speed['vy']], self.stepReward(agent, target, rewardsList, totalTime, status=None), None, rewardsList
         
     def reset(self, agents):
         for ag in agents:
@@ -102,16 +102,33 @@ class Env():
         return [agents[0].xPos, agents[0].yPos, agents[0].speed['vx'], agents[0].speed['vy'], agents[1].xPos, agents[1].yPos, agents[1].speed['vx'], agents[1].speed['vy']], agents
             
     def selectStatus(self, agentObserver, agentTarget): # TODO: Are you sure the |v| sign in doc is not ||v|| and not mean length of vector? !!!!!!!! andaze speedd
-        SpeedMultiply = agentObserver.speed['vx'] * agentTarget.speed['vx'] + agentObserver.speed['vy'] * agentTarget.speed['vy']
-        absSpeedMultiply = np.sqrt(agentObserver.speed['vx'] ** 2 + agentObserver.speed['vy'] ** 2) * np.sqrt(agentTarget.speed['vx'] ** 2 + agentObserver.speed['vy'] ** 2)
+        # SpeedMultiply = agentObserver.speed['vx'] * agentTarget.speed['vx'] + agentObserver.speed['vy'] * agentTarget.speed['vy']
+        SpeedMultiply = np.dot([agentObserver.speed['vx'], agentObserver.speed['vy']], [agentTarget.speed['vx'], agentTarget.speed['vy']])
+        # absSpeedMultiply = np.sqrt(agentObserver.speed['vx'] ** 2 + agentObserver.speed['vy'] ** 2) * np.sqrt(agentTarget.speed['vx'] ** 2 + agentTarget.speed['vy'] ** 2)
+        absSpeedMultiply = np.linalg.norm([agentObserver.speed['vx'], agentObserver.speed['vy']]) * np.linalg.norm([agentTarget.speed['vx'], agentTarget.speed['vy']])
         cos70 = np.cos(np.deg2rad(70))
         cos145 = np.cos(np.deg2rad(145))
-        if SpeedMultiply > cos70 * absSpeedMultiply:
-            status = "Overtaking"
-        if SpeedMultiply < cos145 * absSpeedMultiply:
+        # if SpeedMultiply > cos70 * absSpeedMultiply:
+        # print(f"arccos: {np.arccos(SpeedMultiply/absSpeedMultiply)}")
+        if np.arccos(SpeedMultiply/absSpeedMultiply) <=  ((np.pi / 180) * 70) and np.arccos(SpeedMultiply/absSpeedMultiply) >= 0:
+            if agentObserver.nonVectoralSpeed > agentTarget.nonVectoralSpeed:
+                status = "Overtaking"
+            else:
+                status = "standBy"
+        # if SpeedMultiply < cos145 * absSpeedMultiply:
+        elif np.arccos(SpeedMultiply/absSpeedMultiply) <= np.pi and np.arccos(SpeedMultiply/absSpeedMultiply) >= ((np.pi / 180) * 165):
             status = "HeadOn"
-        if SpeedMultiply <= cos70 * absSpeedMultiply or SpeedMultiply >= cos145 * absSpeedMultiply:
-            status = "Crossing"
+        # if SpeedMultiply <= cos70 * absSpeedMultiply or SpeedMultiply >= cos145 * absSpeedMultiply:
+        # if np.arccos(SpeedMultiply/absSpeedMultiply) < np.cos(180 + 15) or np.arccos(SpeedMultiply/absSpeedMultiply) > np.cos(180 - 15):
+        else:
+            # print(f"SpeedMultiply: {SpeedMultiply}, absSpeedMultiply: {absSpeedMultiply}, cos70: {cos70 * absSpeedMultiply}, cos145: {cos145 * absSpeedMultiply}")
+            # print(f"arccos: {np.arccos(SpeedMultiply/absSpeedMultiply)}")
+            if agentObserver.xPos < agentTarget.xPos:
+                # agentObserver.trainable = True
+                status = "Crossing_giveway"
+            else:
+                # agentObserver.trainable = False
+                status = "Crossing_standOn"
 
         return status
 
@@ -120,12 +137,12 @@ class Env():
         changedAngle = np.random.uniform(w.actionSpace['changedAngle'][0], w.actionSpace['changedAngle'][1])
         return changedAccel, changedAngle
 
-    def stepReward(self, agent, target, rewardsList, totalTime, action):
+    def stepReward(self, agent, target, rewardsList, totalTime, status):
         returnReward = 0
         rewardFinal = 140000 # 1000
         rewardTowardGoalConst = 0.0001
         rewardCollision = -4 # -1000
-        rewardLeft = -2 # -10
+        rewardLeft = -0.5 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
         R_c = 1.5
@@ -142,9 +159,9 @@ class Env():
         Vp = [agent.firstSpeed['vx'], agent.firstSpeed['vy']]
         da = np.linalg.norm(Va) - (np.dot(Va, Vt)/np.linalg.norm(Va))
         Vox = [agent.speed['vx'], 0]
-        SId = np.arccos(np.dot(Vp, Vpx)/(np.linalg.norm(Vp) * np.linalg.norm(Vpx)))
-        deltaSId = np.arccos(np.dot([agent.speed['vx'], agent.speed['vy']], [agent.firstSpeed['vx'], agent.firstSpeed['vy']])/(np.linalg.norm([agent.speed['vx'], agent.speed['vy']]) * np.linalg.norm([agent.firstSpeed['vx'], agent.firstSpeed['vy']])))
-        
+        Vo = [agent.speed['vx'], agent.speed['vy']]
+        SId = np.arccos(np.dot(Vo, Vox)/(np.linalg.norm(Vo) * np.linalg.norm(Vox)))
+        deltaSId = np.arccos(float("{:.5f}".format(np.dot(Vo, Vp)/(np.linalg.norm(Vo) * np.linalg.norm(Vp)))))
         """
             A) Path following Reward function:
                 1- Goal reward
@@ -171,37 +188,36 @@ class Env():
         """
 
         # if agent.distfromAgent(target) < agent.acceptableDist:
-        # if not agent.checkArrival():
-        #     # print("reward Heading") 
+        if not agent.checkArrival():
+            # print("reward Heading") 
             
-        #     if np.abs(deltaSId) < np.abs(SId):
-        #         R_Heading = np.exp(-k_c * np.abs(deltaSId))
-        #         # print(f"R_Heading: {R_Heading}, deltaSId: {deltaSId}")
-        #     else:
-        #         R_Heading = -1
-        #         # print(f"else R_Heading: {R_Heading}")
+            if np.abs(deltaSId) < np.abs(SId):
+                R_Heading = 0.1 * np.exp(-k_c * np.abs(deltaSId))
+                
+            else:
+                R_Heading = -0.1
+                # print(f"else R_Heading: {R_Heading}")
             
-        #     if np.abs(da) > np.abs(agent.distfromAgent(target)):
-        #         R_Cross = np.exp(-k_d * np.exp(agent.distfromPathLine()))
-        #         # print(f"R_Cross: {R_Cross}, deltaSId: {agent.distfromPathLine()}")
-        #     else:
-        #         R_Cross = -1
-        #         # print(f"else R_Cross: {R_Cross}")
+            if np.abs(da) > np.abs(agent.distfromPathLine()):
+                R_Cross = 0.1 * np.exp(-k_d * np.exp(agent.distfromPathLine()))
+                
+            else:
+                R_Cross = -0.1
+                # print(f"else R_Cross: {R_Cross}")
 
-        #     R_Speed = np.exp(-k_v * np.abs(deltaUp))
-        #     # print(f"R_Speed: {R_Speed}, deltaUp: {deltaUp}")
-        #     # print(f"else R_Speed: {R_Speed}")
-
-        #     # rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromOriginalLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
-        #     # rHeadingCross2 = discounter * np.exp(-k_d * np.abs(agent.distfromPathLine())) + discounter * np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + discounter * np.exp(-k_v * np.abs(deltaUp)) - R_c
-        #     rHeadingCross3 = R_Cross + R_Heading + R_Speed
-        #     # print(f"R_Cross: {R_Cross}, R_Heading {R_Heading}, R_Speed: {R_Speed}")
-        #     # print(f"rHeadingCross3: {rHeadingCross3}")
-        #     # if agent.distfromPathLine() > 1:
-        #     #     rHeadingCross2 -= np.log(agent.distfromPathLine())/np.log(10)
-        #     returnReward += rHeadingCross3 - 2
-        #     # returnReward -= rHeadingCross3
-        #     rewardsList[agent.id][1].append(rHeadingCross3 - 1)
+            R_Speed = 0.1 * np.exp(-k_v * np.abs(deltaUp))
+            # print(f"R_Speed: {R_Speed}, deltaUp: {deltaUp}")
+            # print(f"else R_Speed: {R_Speed}")
+            # rHeadingCross1 = np.exp(-k_c * np.abs(agent.distfromPathLine())) * np.cos(agent.angleFromOriginalLine()) + k_r * (np.exp(-k_c * np.abs(agent.distfromPathLine())) + np.cos(agent.angleFromOriginalLine())) + np.exp(-k_v * np.abs(deltaUp)) - R_c
+            # rHeadingCross2 = discounter * np.exp(-k_d * np.abs(agent.distfromPathLine())) + discounter * np.exp(-k_c * np.abs(agent.angleFromOriginalLine())) + discounter * np.exp(-k_v * np.abs(deltaUp)) - R_c
+            rHeadingCross3 = R_Cross + R_Heading + R_Speed
+            # print(f"R_Cross: {R_Cross}, R_Heading {R_Heading}, R_Speed: {R_Speed}")
+            # print(f"rHeadingCross3: {rHeadingCross3}")
+            # if agent.distfromPathLine() > 1:
+            #     rHeadingCross2 -= np.log(agent.distfromPathLine())/np.log(10)
+            returnReward += rHeadingCross3
+            # returnReward -= rHeadingCross3
+            rewardsList[agent.id][1].append(rHeadingCross3)
             # print(f"agnet ID: {agent.id}, rHeadingCross3: {rHeadingCross3}")
 
         """
@@ -214,7 +230,7 @@ class Env():
         
         
         
-        if agent.distfromAgent(target) < agent.acceptableDist:
+        if agent.distfromAgent(target) < agent.acceptableDist  and status != 'Crossing_standOn':
             # print("reward dist from agent is low", agent.distfromAgent(target))
             # returnReward += rewardCollision * 1/agent.distfromAgent(target)
             returnReward += rewardCollision
@@ -227,7 +243,7 @@ class Env():
             rewardsList[agent.id][2].append(0)
             rewardsList[agent.id][4].append(0)
 
-        if agent.angleFromPathLine():
+        if agent.angleFromPathLine() and status != 'Crossing_standOn':
             returnReward += rewardLeft
             # returnReward -= rewardLeft
             rewardsList[agent.id][3].append(rewardLeft)
@@ -251,8 +267,8 @@ class Env():
         # returnReward += (rewardFinal - np.sqrt((agent.xPos - agent.xDest) ** 2 + (agent.yPos - agent.yDest) ** 2))/rewardFinal
         # if (agent.distfromPathLine() > 1 or agent.distfromPathLine() < -1) and agent.id == 0:
         #     returnReward -= 10
-        if np.log(agent.distfromPathLine()) > 5.8:
-            returnReward -= np.log(agent.distfromPathLine())/np.log(100)
+        # if np.log(agent.distfromPathLine()) > 5.8:
+        #     returnReward -= np.log(agent.distfromPathLine())/np.log(100)
             # if agent.id == 0:
             #     print(f"np.log(agent.distfromPathLine()): {np.log(agent.distfromPathLine())}, Reward: {np.log(agent.distfromPathLine())/np.log(1000)}")
         # rewardsList[agent.id][0].append(returnReward)
