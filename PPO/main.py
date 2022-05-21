@@ -168,10 +168,14 @@ def loggerEnd(i, stepCounter, agentList, agentsPos, dtLogger, maxDistfromPath, m
     # plt.savefig(logPath + "Advantage_value_Agent_1_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
     # plt.close("all")
 
+    for agent in agentList:
+        sns.lineplot(data=action_history[agent.id][0], label="angle").set(title='Action Angle of Agnet ' + str(agent.id) + ' step ' + str(stepCounter), xlabel="Steps", ylabel="Actions")
+        plt.savefig(logPath + "Actions_Angle_Agent_" + str(agent.id) + '_' + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
+        plt.close("all")
 
-    # sns.lineplot(data=action_history[0], label="actions").set(title='Actions of Agnet ' + str(0) + ' step ' + str(stepCounter), xlabel="Steps", ylabel="Actions")
-    # plt.savefig(logPath + "Actions_Agent_0_" + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
-    # plt.close("all")
+        sns.lineplot(data=action_history[agent.id][1], label="acceleration").set(title='Action Acceleration of Agnet ' + str(agent.id) + ' step ' + str(stepCounter), xlabel="Steps", ylabel="Actions")
+        plt.savefig(logPath + "Actions_Accel_Agent_" + str(agent.id) + '_' + str(i) + "_" + str(stepCounter) + ".png", dpi=500)
+        plt.close("all")
 
     # with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
     #     pickle.dump(agentList[0].trainLogs[0], f)
@@ -182,9 +186,9 @@ def loggerEnd(i, stepCounter, agentList, agentsPos, dtLogger, maxDistfromPath, m
     #     # if world.senario != 'Overtaking':
     #     agent.save_models(modelPath)
 
-    with open(logPath + "actionList" + str(i) + ".txt", 'w') as f:
-        for aa in actionsListEpisode:
-            f.write("%s\n" % aa)
+    # with open(logPath + "actionList" + str(i) + ".txt", 'w') as f:
+    #     for aa in actionsListEpisode:
+    #         f.write("%s\n" % aa)
 
 if __name__ == '__main__':
     sen = 'None' # None, Crossing, Overtaking
@@ -245,7 +249,7 @@ if __name__ == '__main__':
         outputofModel = []
         distAgent = [[] for _ in agentList]
         rewardsList = [[[],[],[],[],[]] for _ in agentList]
-        action_history=[[] for _ in agentList]
+        action_history=[[[],[]] for _ in agentList]
         agentDist = []
         agentDistID = []
         score = [0 for _ in agentList]
@@ -338,7 +342,8 @@ if __name__ == '__main__':
                         action, prob, val = agent.choose_action(observation)
                         # while agent.maxAngle < agent.angle + world.angleBoundryCat[action] or -agent.maxAngle > agent.angle + world.angleBoundryCat[action]:
                         #     action, prob, val = agent.choose_action(observation)
-                        action_history[agent.id].append(action)
+                        action_history[agent.id][0].append(action['angle'])
+                        action_history[agent.id][1].append(action['accel'])
                         observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime, statusALL[agent.id][target.id])
                         ob = observation_
                         observation_ = [ob[0]/x, ob[1]/x, ob[2]/500, ob[3]/500, ob[4]/x, ob[5]/x, ob[6]/500, ob[7]/500]
@@ -351,9 +356,9 @@ if __name__ == '__main__':
                             learn_iters += 1
                             
                         if agent.id == 0:
-                            score[j] += reward
-                            totalScore.append(score[j])
-                            episodeScore.append(score[j])
+                            score[agent.id] += reward
+                            totalScore.append(score[agent.id])
+                            episodeScore.append(score[agent.id])
                         # actionsListEpisode[0].append(action['accel'].numpy())
                         # actionsListEpisode[1].append(action['angle'].numpy())
                         distAgent[agent.id].append(agent.distfromAgent(target))
