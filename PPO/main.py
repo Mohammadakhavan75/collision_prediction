@@ -203,7 +203,7 @@ def loggerEnd(i, stepCounter, agentList, agentsPos, dtLogger, maxDistfromPath, m
 
 if __name__ == '__main__':
     sen = 'None' # None, Crossing, Overtaking
-    agnetNumber = 2
+    agnetNumber = 4
 
     x = 58000 * 1.62 # 1.3
     y = 58000 * 1.62
@@ -266,6 +266,7 @@ if __name__ == '__main__':
         score = [0 for _ in agentList]
         stepCounter = 0
         stepManuover = [0 for _ in agentList]
+        stepManuoverWorld = 0
         maxDistfromPathPerEpisode = 0
         breakEpisode = False
         TTCValue = [False for _ in agentList]
@@ -361,7 +362,7 @@ if __name__ == '__main__':
                         world.store_transition(observation, action, prob, val, reward, done[0])
                         # state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = agent.memory.generate_batches()
                         # print(f"ID: {agent.id}, stepManuover: {stepManuover[agent.id]}, len(memory): {len(old_prob_arr)}")
-                        if stepManuover[agent.id] % N == N-1:
+                        if stepManuoverWorld % N == N-1:
                             # print(f"SSSSSSSSSSStart TTTTTTTTTTrain")
                             agent.learn(world.actor, world.critic, world.memory)
                             learn_iters += 1
@@ -384,6 +385,7 @@ if __name__ == '__main__':
                             maxDistfromPath = agent.distfromPathLine()
 
                         stepManuover[agent.id] += 1    
+                        stepManuoverWorld += 1
                     else:
                         ismanouver = False
                         action = None
@@ -419,7 +421,7 @@ if __name__ == '__main__':
                     #     agent.learn(world.actor, world.critic, world.memory, world.memory, world.memory, outofbound_loss=reward, outofbound=True)
 
                     state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = world.memory.generate_batches()
-                    if stepManuover[agent.id] % N > 1 and len(batches) != 0:
+                    if stepManuoverWorld % N > 1 and len(batches) != 0:
                         reward = [20 for i in range(len(batches[0]))]
                         agent.learn(world.actor, world.critic, world.memory, outofbound_loss=reward, outofbound=True)
 
@@ -443,7 +445,7 @@ if __name__ == '__main__':
                     # observation_ = [ob/x for ob in observation_]
                     # agent.store_transition(observation, action, prob, val, reward, done[0])
                     state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = world.memory.generate_batches()
-                    if stepManuover[agent.id] % N > 1 and len(batches) != 0:
+                    if stepManuoverWorld % N > 1 and len(batches) != 0:
                         reward = [-100 for i in range(len(batches[0]))]
                         agent.learn(world.actor, world.critic, world.memory, outofbound_loss=reward, outofbound=True)
 
@@ -476,8 +478,10 @@ if __name__ == '__main__':
             
             # print(f"\nstep: {stepCounter},\nobservation_agent: {observation_agent}")
         # print("episode %f finished!", i)
-
-        score_history.append(score[agentList[0].id]/stepManuover[agentList[0].id])
+        if stepManuover[agentList[0].id] != 0:
+            score_history.append(score[agentList[0].id]/stepManuover[agentList[0].id])
+        else:
+            score_history.append(0)
         avg_score = np.mean(score_history[-100:])
         total_avg_score.append(avg_score)
         if avg_score > best_score:
