@@ -133,6 +133,7 @@ class Agent():
                     #     print(f"batch: {batch}")
 
                     advantage = np.array(advantage)[batch.astype(int)]
+                    advantageSingle = copy.deepcopy(advantage)
                     for adv in list(advantage[batch]):
                         adv_dupl.append(adv)
                         adv_dupl.append(adv)
@@ -169,7 +170,7 @@ class Agent():
                     actor_loss = tf.math.reduce_mean(actor_loss)
 
                     # returns = advantage[batch] + values[batch]
-                    returns = advantage + values[batch]
+                    returns = advantageSingle + values[batch]
                     critic_loss = keras.losses.MSE(critic_value, returns)
 
 
