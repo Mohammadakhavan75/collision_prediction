@@ -2,6 +2,10 @@ from tarfile import XGLTYPE
 from .agent import Agent
 import numpy as np
 import time
+from .networks import ActorNetwork, CriticNetwork
+from tensorflow.keras.optimizers import Adam
+from .memory import PPOMemory
+import tensorflow.keras as keras
 
 class Env():
     def __init__(self, xWidth, yWidth, gridCellSize=0, senario=None):
@@ -17,7 +21,31 @@ class Env():
         self.angleBoundryCat = [-0.05235987755982989 + i * 0.026179938779914945 for i in range(5)]
         self.actionSpaceCat = {'changedAccel': self.accelerationBoundryCat, 'changedAngle': self.angleBoundryCat}
         self.senario = senario
-    
+        
+        self.actor = ActorNetwork(10)
+        self.actor.compile(optimizer=Adam(learning_rate=0.0003))
+        self.critic = CriticNetwork()
+        self.critic.compile(optimizer=Adam(learning_rate=0.001))
+        self.memory = PPOMemory(64)
+        
+
+    def store_transition(self, state, action, probs, vals, reward, done):
+        # print(f"saving memroy ID: {self.id}")
+        self.memory.store_memory(state, action, probs, vals, reward, done)
+
+    def save_models(self, path):
+        print('... saving models ...')
+        self.chkpt_dir = path
+        self.actor.save(self.chkpt_dir + 'actor')
+        self.critic.save(self.chkpt_dir + 'critic')
+
+    def load_models(self):
+        print('... loading models ...')
+        self.actor = keras.models.load_model(self.chkpt_dir + 'actor')
+        self.critic = keras.models.load_model(self.chkpt_dir + 'critic')
+
+    def model(self):
+        pass
     def initAgent(self, n_actions, alpha=0.0003, batch_size=64, n_epochs=10, agnetNum=2, random=True):
         agentList = []
         if self.senario == 'Crossing':

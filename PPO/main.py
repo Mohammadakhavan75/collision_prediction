@@ -12,6 +12,8 @@ import gc
 import seaborn as sns
 import warnings
 import pickle
+
+from env.networks import ActorNetwork
 warnings.filterwarnings('ignore')
 
 tf.config.set_visible_devices([], 'GPU')
@@ -180,12 +182,20 @@ def loggerEnd(i, stepCounter, agentList, agentsPos, dtLogger, maxDistfromPath, m
     # with open(logPath + 'R_Agent_' + str(agentList[0].id)+ "_"  + str(i) + '.pkl', 'wb') as f:
     #     pickle.dump(agentList[0].trainLogs[0], f)
 
-    for agent in agentList:
-        modelPath = f"./Log/{dtLogger}/episode_{i}/agent_{agent.id}/"
+    # for agent in agentList:
+    #     modelPath = f"./Log/{dtLogger}/episode_{i}/agent_{agent.id}/"
+    #     # pathlib.Path(modelPath).mkdir(parents=True, exist_ok=True)
+    #     # if world.senario != 'Overtaking':
+    #     if agent.trainOccured:
+    #         agent.save_models(modelPath)
+
+    
+    modelPath = f"./Log/{dtLogger}/episode_{i}/Model/"
         # pathlib.Path(modelPath).mkdir(parents=True, exist_ok=True)
         # if world.senario != 'Overtaking':
-        if agent.trainOccured:
-            agent.save_models(modelPath)
+    if agent.trainOccured:
+        world.save_models(modelPath)
+
 
     # with open(logPath + "actionList" + str(i) + ".txt", 'w') as f:
     #     for aa in actionsListEpisode:
@@ -193,7 +203,7 @@ def loggerEnd(i, stepCounter, agentList, agentsPos, dtLogger, maxDistfromPath, m
 
 if __name__ == '__main__':
     sen = 'None' # None, Crossing, Overtaking
-    agnetNumber = 4
+    agnetNumber = 2
 
     x = 58000 * 1.62 # 1.3
     y = 58000 * 1.62
@@ -340,7 +350,7 @@ if __name__ == '__main__':
                     if TTCValue[agent.id] and statusALL[agent.id][target.id] != 'Crossing_standOn' and statusALL[agent.id][target.id] != 'standBy':
                         observation = [observation_agent[agent.id]['xPos'], observation_agent[agent.id]['yPos'], observation_agent[agent.id]['xSpeed'], observation_agent[agent.id]['ySpeed'],\
                             observation_agent[target.id]['xPos'], observation_agent[target.id]['yPos'], observation_agent[target.id]['xSpeed'], observation_agent[target.id]['ySpeed']]
-                        action, prob, val = agent.choose_action(observation)
+                        action, prob, val = agent.choose_action(world.actor, world.critic, observation)
                         # while agent.maxAngle < agent.angle + world.angleBoundryCat[action] or -agent.maxAngle > agent.angle + world.angleBoundryCat[action]:
                         #     action, prob, val = agent.choose_action(observation)
                         action_history[agent.id][0].append(action['angle'])
@@ -348,12 +358,12 @@ if __name__ == '__main__':
                         observation_, reward, ـ, info = world.step(action, agent, target, deltaT, ismanouver, rewardsList, totalTime, statusALL[agent.id][target.id])
                         ob = observation_
                         observation_ = [ob[0]/x, ob[1]/x, ob[2]/500, ob[3]/500, ob[4]/x, ob[5]/x, ob[6]/500, ob[7]/500]
-                        agent.store_transition(observation, action, prob, val, reward, done[0])
-                        state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = agent.memory.generate_batches()
+                        world.store_transition(observation, action, prob, val, reward, done[0])
+                        # state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = agent.memory.generate_batches()
                         # print(f"ID: {agent.id}, stepManuover: {stepManuover[agent.id]}, len(memory): {len(old_prob_arr)}")
                         if stepManuover[agent.id] % N == N-1:
                             # print(f"SSSSSSSSSSStart TTTTTTTTTTrain")
-                            agent.learn()
+                            agent.learn(world.actor, world.critic, world.memory)
                             learn_iters += 1
                             
                         if agent.id == 0:
@@ -398,15 +408,21 @@ if __name__ == '__main__':
                     # agent.store_transition(observation, action, prob, val, reward, done[0])
                     # agent.learn(outofbound_loss=reward)
                     # observation = observation_
-                    state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = agent.memory.generate_batches()
-                    print(f"len batches : {len(batches)}")
+                    # state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = agent.memory.generate_batches()
+                    # print(f"len batches : {len(batches)}")
+                    
+                    # if stepManuover[agent.id] % N > 1 and len(batches) != 0:
+                    #     reward = [20 for i in range(stepManuover[agent.id] % N)]
+                    #     agent.learn(world.actor, world.critic, world.memory, outofbound_loss=reward, outofbound=True)
+                    # elif stepManuover[agent.id] % N == 0 and len(batches) != 0:
+                    #     reward = [20 for i in range(N)]
+                    #     agent.learn(world.actor, world.critic, world.memory, world.memory, world.memory, outofbound_loss=reward, outofbound=True)
+
+                    state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = world.memory.generate_batches()
                     if stepManuover[agent.id] % N > 1 and len(batches) != 0:
-                        reward = [100 for i in range(stepManuover[agent.id] % N)]
-                        agent.learn(outofbound_loss=reward, outofbound=True)
-                    elif stepManuover[agent.id] % N == 0 and len(batches) != 0:
-                        reward = [100 for i in range(N)]
-                        agent.learn(outofbound_loss=reward, outofbound=True)
-        
+                        reward = [20 for i in range(len(batches[0]))]
+                        agent.learn(world.actor, world.critic, world.memory, outofbound_loss=reward, outofbound=True)
+
                     agent.arrival=True
                     for ag in agentList:
                         print(f"agent attribute is: {ag.getAttr()}")
@@ -426,14 +442,11 @@ if __name__ == '__main__':
                     # rewardsList[agent.id][1].append(reward)
                     # observation_ = [ob/x for ob in observation_]
                     # agent.store_transition(observation, action, prob, val, reward, done[0])
-                    state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = agent.memory.generate_batches()
-                    print(f"len batches : {len(batches)}")
+                    state_arr, action_arr, old_prob_arr, vals_arr, reward_arr, dones_arr, batches = world.memory.generate_batches()
                     if stepManuover[agent.id] % N > 1 and len(batches) != 0:
-                        reward = [-100 for i in range(stepManuover[agent.id] % N)]
-                        agent.learn(outofbound_loss=reward, outofbound=True)
-                    elif stepManuover[agent.id] % N == 0 and len(batches) != 0:
-                        reward = [-100 for i in range(N)]
-                        agent.learn(outofbound_loss=reward, outofbound=True)
+                        reward = [-100 for i in range(len(batches[0]))]
+                        agent.learn(world.actor, world.critic, world.memory, outofbound_loss=reward, outofbound=True)
+
                     # observation = observation_
 
                     
