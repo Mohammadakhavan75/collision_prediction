@@ -432,7 +432,7 @@ if __name__ == '__main__':
                 
 
                 # if agent.outofBound():
-                if agent.outofBoundMines():
+                if agent.outofBoundMines(world):
                     breakEpisode = True
                     # action, prob, val = agent.choose_action(observation)
                     for ag in agentList:
