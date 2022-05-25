@@ -11,6 +11,8 @@ class Env():
     def __init__(self, xWidth, yWidth, gridCellSize=0, senario=None):
         self.xWidth = xWidth
         self.yWidth = yWidth
+        self.xMines = -40000
+        self.yMines = -40000
         self.gridCellSize = gridCellSize
         self.accelerationBoundry = [-0.4, 0.4]
         self.angleBoundry = [np.deg2rad(-3) , np.deg2rad(3)]

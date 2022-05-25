@@ -205,9 +205,9 @@ if __name__ == '__main__':
     sen = 'None' # None, Crossing, Overtaking
     agnetNumber = 4
 
-    x = 58000 * 1.62 # 1.3
-    y = 58000 * 1.62
-    deltaT = 0.5
+    x = 58000 * 2.5 # 1.3, 1.62
+    y = 58000 * 2.5
+    deltaT = 0.1
     arrival = 0
     
     counter = 0
@@ -431,7 +431,8 @@ if __name__ == '__main__':
                         print(f"Agent {ag.id} Arrived!")
                 
 
-                if agent.outofBound():
+                # if agent.outofBound():
+                if agent.outofBoundMines():
                     breakEpisode = True
                     # action, prob, val = agent.choose_action(observation)
                     for ag in agentList:
@@ -469,7 +470,7 @@ if __name__ == '__main__':
 
 
 
-                if stepCounter > 3000:
+                if stepCounter > 10000:
                     breakEpisode = True
                     print("break of timeout!")
                 # if score[j] < -100000:

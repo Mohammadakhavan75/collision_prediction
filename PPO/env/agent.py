@@ -316,6 +316,12 @@ class Agent():
         else:
             return False
 
+    def outofBoundMines(self, world):
+        if self.xPos > world.xWidth or self.yPos > world.yWidth or self.xPos < world.xMines or self.yPos < world.yMines:
+            return True
+        else:
+            return False
+
     def distfromAgent(self, target):
         Dist = np.sqrt((self.getAttr()['xPos'] - target.getAttr()['xPos']) ** 2 + (self.getAttr()['yPos'] - target.getAttr()['yPos']) ** 2)
         return Dist
