@@ -171,7 +171,7 @@ class Env():
         returnReward = 0
         rewardFinal = 140000 # 1000
         rewardTowardGoalConst = 0.0001
-        rewardCollision = -4 # -1000
+        rewardCollision = -40 # -1000
         rewardLeft = -0.5 # -10
         deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
         deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
