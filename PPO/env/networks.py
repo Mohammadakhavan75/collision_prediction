@@ -11,14 +11,16 @@ class ActorNetwork(keras.Model):
         if cont:
             self.fc3 = Dense(4, activation='tanh')
         else:
-            self.fc3 = Dense(n_actions, activation='softmax')
+            self.fc3_1 = Dense(n_actions, activation='softmax')
+            self.fc3_2 = Dense(n_actions, activation='softmax')
 
     def call(self, state):
         x = self.fc1(state)
         x = self.fc2(x)
-        x = self.fc3(x)
+        x1 = self.fc3_1(x)
+        x2 = self.fc3_2(x)
 
-        return x
+        return x1, x2
 
 
 class CriticNetwork(keras.Model):

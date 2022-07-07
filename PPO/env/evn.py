@@ -24,7 +24,7 @@ class Env():
         self.actionSpaceCat = {'changedAccel': self.accelerationBoundryCat, 'changedAngle': self.angleBoundryCat}
         self.senario = senario
         
-        self.actor = ActorNetwork(10)
+        self.actor = ActorNetwork(5)
         self.actor.compile(optimizer=Adam(learning_rate=0.0003))
         self.critic = CriticNetwork()
         self.critic.compile(optimizer=Adam(learning_rate=0.001))
@@ -130,7 +130,14 @@ class Env():
             ag.resetAttr()
         # return [agents[0].xPos, agents[0].yPos, agents[0].speed['vx'], agents[0].speed['vy'], agents[0].accel['ax'], agents[0].accel['ay'], agents[1].xPos, agents[1].yPos, agents[1].speed['vx'], agents[1].speed['vy'], agents[1].accel['ax'], agents[1].accel['ay']], agents
         return [agents[0].xPos, agents[0].yPos, agents[0].speed['vx'], agents[0].speed['vy'], agents[1].xPos, agents[1].yPos, agents[1].speed['vx'], agents[1].speed['vy']], agents
-            
+
+    def AngleFromAgent(self, agentObserver, agentTarget):
+        SpeedMultiply = np.dot([agentObserver.speed['vx'], agentObserver.speed['vy']], [agentTarget.speed['vx'], agentTarget.speed['vy']])
+        absSpeedMultiply = np.linalg.norm([agentObserver.speed['vx'], agentObserver.speed['vy']]) * np.linalg.norm([agentTarget.speed['vx'], agentTarget.speed['vy']])
+        # print("IDs:", agentObserver.id, agentTarget.id, SpeedMultiply, absSpeedMultiply, SpeedMultiply/absSpeedMultiply, np.arccos(round(SpeedMultiply/absSpeedMultiply, 6)) )
+        # return np.arccos(SpeedMultiply/absSpeedMultiply)
+        return np.arccos(round(SpeedMultiply/absSpeedMultiply, 6))
+
     def selectStatus(self, agentObserver, agentTarget): # TODO: Are you sure the |v| sign in doc is not ||v|| and not mean length of vector? !!!!!!!! andaze speedd
         # SpeedMultiply = agentObserver.speed['vx'] * agentTarget.speed['vx'] + agentObserver.speed['vy'] * agentTarget.speed['vy']
         SpeedMultiply = np.dot([agentObserver.speed['vx'], agentObserver.speed['vy']], [agentTarget.speed['vx'], agentTarget.speed['vy']])
@@ -173,8 +180,8 @@ class Env():
         rewardTowardGoalConst = 0.0001
         rewardCollision = -40 # -1000
         rewardLeft = -0.5 # -10
-        deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
-        deltaUp = agent.nonVectoralSpeed - agent.nonVectoralSpeed
+        # deltaUp = [agent.firstSpeed['vx'] - agent.speed['vx'], agent.firstSpeed['vy'] - agent.speed['vy']]
+        deltaUp = np.abs(agent.nonVectoralSpeedStart - agent.nonVectoralSpeed)
         R_c = 1.5
         k_r = 0.01  # 0.01
         k_c = 0.01  # 0.01

@@ -44,6 +44,14 @@ class Agent():
         self.arrival = False
         self.trainable = trainable
         self.trainOccured = False
+        self.maxDist = 0
+        self.Info = []
+        self.FULL_DATA = {'ID': [], 'xPos': [], 'yPos': [], 'firstPosX': [], 'firstPosY': [],
+                        'xDest': [], 'yDest': [], 'speed_vx': [],  'speed_vy': [],
+                        'accel_ax': [], 'accel_ay': [], 'firstSpeed_vx': [], 'firstSpeed_vy': [],
+                        'acceptableDist': [], 'nonVectoralSpeedStart': [], 'nonVectoralSpeed': [],
+                        'angle': [], 'firstAngle': [], 'maxAngle': [],
+                        'nonVectoralAccel': [], 'timetoManouver': [], 'maxDist': []}
 
         self.gamma = gamma
         self.policy_clip = policy_clip
@@ -51,15 +59,30 @@ class Agent():
         self.gae_lambda = gae_lambda
         self.chkpt_dir = chkpt_dir
 
+    def update_info(self):
+        self.Info = {'ID': self.id,
+                    'xPos': self.xPos, 'yPos': self.yPos,
+                    'firstPosX': self.firstPosX, 'firstPosY': self.firstPosY,
+                    'xDest': self.xDest,'yDest': self.yDest,
+                    'speed_vx': self.speed['vx'], 'speed_vy': self.speed['vy'],
+                    'accel_ax': self.accel['ax'], 'accel_ay': self.accel['ay'],
+                    'firstSpeed_vx': self.firstSpeed['vx'], 'firstSpeed_vy': self.firstSpeed['vy'],
+                    'acceptableDist': self.acceptableDist, 
+                    'nonVectoralSpeedStart': self.nonVectoralSpeedStart, 'nonVectoralSpeed': self.nonVectoralSpeed,
+                    'angle': self.angle, 'firstAngle': self.firstAngle, 'maxAngle': self.maxAngle,
+                    'nonVectoralAccel': self.nonVectoralAccel, 'timetoManouver': self.timetoManouver,
+                    'maxDist': self.maxDist}
+
     def choose_action(self, Actor, Critic, observation):
         state = tf.convert_to_tensor([observation])
         probs = Actor(state)
+        # print(f"PROBS: {probs[0][0], probs[1][0]}")
 
-        distAngle = tfp.distributions.Categorical(probs=probs[0][:5])
-        distAccel = tfp.distributions.Categorical(probs=probs[0][5:])
+        distAngle = tfp.distributions.Categorical(probs=probs[0][0])
+        distAccel = tfp.distributions.Categorical(probs=probs[1][0])
 
-        actionAngle = random.choices(self.actionAngle_, probs[0][:5])
-        actionAccel = random.choices(self.actionAccel_, probs[0][5:])
+        actionAngle = random.choices(self.actionAngle_, probs[0][0])
+        actionAccel = random.choices(self.actionAccel_, probs[1][0])
 
         log_prob_angle = distAngle.log_prob(actionAngle)
         log_prob_accel = distAccel.log_prob(actionAccel)
@@ -107,10 +130,12 @@ class Agent():
                     # actions = tf.convert_to_tensor(action_arr[batch])
                     actions_accel = tf.convert_to_tensor([ac['accel'] for ac in action_arr[batch]])
                     actions_angle = tf.convert_to_tensor([ac['angle'] for ac in action_arr[batch]])
+                    # print(states)
                     probs = Actor(states)
+                    # print("probs: ", probs)
                     # dist = tfp.distributions.Categorical(probs=probs)
-                    distAngle = tfp.distributions.Categorical(probs=probs[0][:5])
-                    distAccel = tfp.distributions.Categorical(probs=probs[0][5:])
+                    distAngle = tfp.distributions.Categorical(probs=probs[0][0])
+                    distAccel = tfp.distributions.Categorical(probs=probs[1][0])
                     # new_probs = dist.log_prob(actions)
                     old_probs_accel, old_probs_angle= [], []
                     for prob in old_probs:
@@ -120,6 +145,7 @@ class Agent():
                     new_probs_accel = distAccel.log_prob(actions_accel)
                     new_probs_angle = distAngle.log_prob(actions_angle)
                     new_probs = [*new_probs_angle, *new_probs_accel]
+                    
                     old_probs = tf.convert_to_tensor(old_probs)
                     new_probs = tf.convert_to_tensor(new_probs)
 
@@ -143,7 +169,9 @@ class Agent():
                     # prob_ratio = tf.math.exp(new_probs - old_probs)
                     # prob_ratio = tf.math.divide(new_probs, old_probs)
                     # prob_ratio = tf.math.divide(tf.math.exp(new_probs), tf.math.exp(old_probs))
+                    # print("new_probs:", new_probs, "old_probs", old_probs)
                     prob_ratio = tf.math.exp(new_probs - old_probs)
+                    # print(f"prob_ratio: {prob_ratio}")
                     # prob_ratio = prob_ratio.numpy()
                     # for indx, p_r in enumerate(prob_ratio):
                     #     if np.isnan(p_r):
@@ -165,20 +193,26 @@ class Agent():
                     # actor_loss = tf.math.maximum(weighted_probs, weighted_clipped_probs)
                     actor_loss = -tf.math.minimum(weighted_probs, weighted_clipped_probs)       # -
                     # if self.id == 0:
-                    #     print(f'actor_loss: {actor_loss}')
+                    # print(f'actor_loss: {actor_loss}')
                         # print(f"action: {actions}")
                     actor_loss = tf.math.reduce_mean(actor_loss)
 
                     # returns = advantage[batch] + values[batch]
                     returns = advantageSingle + values[batch]
                     critic_loss = keras.losses.MSE(critic_value, returns)
+                    # actor_loss = tf.convert_to_tensor(2.7288465)
 
 
                 # actor_loss = -actor_loss
                 # critic_loss = [-cl for cl in critic_loss]
                 
+                # actor_loss = tf.convert_to_tensor([actor_loss, actor_loss])
+                # print("actor_loss", actor_loss)
                 actor_params = Actor.trainable_variables
+                # print("actor_params", actor_params[0])
                 actor_grads = tape.gradient(actor_loss, actor_params)
+                # print("\n\nactor_grads: ", actor_grads[0])
+                # quit()
                 critic_params = Critic.trainable_variables
                 critic_grads = tape.gradient(critic_loss, critic_params)
                 Actor.optimizer.apply_gradients(zip(actor_grads, actor_params))
@@ -250,6 +284,7 @@ class Agent():
         self.initSpeed(self.nonVectoralSpeedStart)
         self.initLine()
         self.firstSpeed = copy.deepcopy(self.speed)
+        self.maxDist = self.remainDist()
 
     def initSpeed(self, u):
         Si = np.arctan((self.yDest - self.yPos) / (self.xDest - self.xPos)) 
@@ -381,15 +416,28 @@ class Agent():
         self.yPos = self.yPos + self.speed['vy'] * deltaT
 
     def updateAcceleration(self, Si, u, omega, g, deltaT):
-        u = u + g * deltaT
+        if u + g * deltaT > 250 or u + g * deltaT < 205:
+            pass
+        else:
+            u = u + g * deltaT
+            self.nonVectoralSpeed = u
+            
         Si = Si + omega * deltaT
-        # if Si > 2 * np.pi:
-        #     Si = Si - 2 * np.pi
-        # if Si < 0:
-        #     Si = Si + 2 * np.pi
+        if Si > 2 * np.pi:
+            Si = Si - 2 * np.pi
+        if Si < 0:
+            Si = Si + 2 * np.pi
         # if self.id == 0:
         #     print(f"g: {g}, omega: {omega}, u: {u}, Si: {Si}")
-        self.nonVectoralSpeed = u
+        if g * np.cos(Si) + u * omega * np.sin(Si) > 5 or g * np.cos(Si) + u * omega * np.sin(Si) < -5:
+            pass
+        else:
+            self.accel['ax'] = g * np.cos(Si) + u * omega * np.sin(Si)
+        if g * np.sin(Si) - u * omega * np.cos(Si) > 5 or g * np.sin(Si) - u * omega * np.cos(Si) < -5:
+            pass
+        else:
+            self.accel['ay'] = g * np.sin(Si) - u * omega * np.cos(Si)
+
         self.angle = Si
 
     def updateSpeed(self, Si, u):
