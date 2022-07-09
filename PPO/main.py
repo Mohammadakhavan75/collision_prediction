@@ -186,8 +186,8 @@ def update_observation(agent, agentList, world, world_lenght):
     for agg in agentList:
         if agent.id != agg.id:
             obob = [agg.xPos / world_lenght, agg.yPos / world_lenght,
-            agg.speed['vx'] / 250, agg.speed['vy'] / 250,
-            agg.accel['ax'] / 5, agg.accel['ay'] / 5,
+            (agg.speed['vx'] + 250) / 500, (agg.speed['vy'] + 250) / 500,
+            (agg.accel['ax'] + 5) / 10, (agg.accel['ay'] + 5) / 10,
             agg.distfromAgent(agent)/agg.maxDist,
             world.AngleFromAgent(agent, agg)/np.pi] # agg.angleFromOriginalLine()
             ob_ += obob
@@ -303,7 +303,7 @@ if __name__ == '__main__':
         while not all(done) and not breakEpisode:
             counter += 1
             stepCounter += 1
-            if stepCounter % 100:
+            if stepCounter % 100 == 0:
                 print("episode: ", i, "step: ", stepCounter)
 
             totalTime += deltaT

@@ -215,6 +215,14 @@ class Agent():
                 # quit()
                 critic_params = Critic.trainable_variables
                 critic_grads = tape.gradient(critic_loss, critic_params)
+                # for a_g in actor_grads:
+                #     print(len(a_g))
+                #     for g in a_g:
+                #         print(type(g))
+                #         print(len(g))
+                #         if any(np.isnan(g)):
+                #             print(actor_grads)
+                #             quit()
                 Actor.optimizer.apply_gradients(zip(actor_grads, actor_params))
                 Critic.optimizer.apply_gradients(zip(critic_grads, critic_params))
 
@@ -422,7 +430,12 @@ class Agent():
             u = u + g * deltaT
             self.nonVectoralSpeed = u
             
-        Si = Si + omega * deltaT
+        if self.angleFromOriginalLine() > np.pi/6:
+            pass
+            # print("**************")
+        else:
+            # print(f"ID: {self.id}, AngleFromLine: {self.angleFromOriginalLine()}, np.pi/6: {np.pi/6}, SI: {Si}")
+            Si = Si + omega * deltaT
         if Si > 2 * np.pi:
             Si = Si - 2 * np.pi
         if Si < 0:
@@ -452,7 +465,7 @@ class Agent():
         self.speed['vx'], self.speed['vy'] = newXspeed, newYspeed 
 
     def angleFromOriginalLine(self):
-        distance = [self.xPos - self.firstPosX, self.yPos - self.firstPosX]
+        distance = [self.xPos - self.firstPosX, self.yPos - self.firstPosY]
         norm = np.sqrt(distance[0] ** 2 + distance[1] ** 2)
         direction = [distance[0] / norm, distance[1] / norm]
         bulletVectorAgentPoisionLine = [direction[0] * np.sqrt(2), direction[1] * np.sqrt(2)]
@@ -491,6 +504,11 @@ class Agent():
         # al = np.dot(v2, v1)
         # print(f"agent.id: {self.id}, v1 {v1}, v2: {v2}, al: {al}")
         return al > 0
+
+    def angleFromDirectLine(self):
+        v1 = [self.xPos - self.firstPosX, self.yPos - self.firstPosY]
+        v2 = [self.xDest - self.firstPosX, self.yDest - self.firstPosY]
+        return np.cross(v2, v1)
 
     def backward(self):
         v1 = [self.xPos - self.firstPosX, self.yPos - self.firstPosY]
